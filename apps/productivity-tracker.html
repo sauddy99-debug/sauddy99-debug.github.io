@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f5ef">
+<title>Hour by Hour · Productivity tracker</title>
+<style>
+:root{color-scheme:light;--paper:#f4f5ef;--ink:#23372e;--muted:#69796f;--line:#d5ddd1;--green:#305d47;--soft:#e9eee4;--gold:#c57c2a;--rows:22;--row-height:clamp(14px,calc((100dvh - 440px)/var(--rows)),36px)}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.45}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #bb853a;outline-offset:3px}button{border:1px solid var(--line);border-radius:7px;background:#fffef9;color:var(--ink);padding:8px 12px}button:hover:not(:disabled){background:#e6eddf}button.primary{background:var(--green);color:white;border-color:var(--green)}button.primary:hover:not(:disabled){background:#214b35}.app{padding:clamp(10px,1.6vw,25px);max-width:2000px;margin:auto}.masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:15px}.brand{display:flex;align-items:center;gap:12px}.brand-icon{height:37px;width:37px;border:1px solid #829880;border-radius:50%;display:grid;place-items:center;font-size:24px;font-family:Georgia,serif;color:var(--green)}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted)}h1{font:clamp(21px,2.1vw,30px)/1.1 Georgia,serif;margin:2px 0 0;font-weight:normal}.clock{text-align:right;font-variant-numeric:tabular-nums}.clock strong{font-size:18px;font-weight:500}.clock small{display:block;color:var(--muted);font-size:11px}.toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.toolbar button{font-size:12px;padding:6px 10px}.folder-label{font-size:11px;color:var(--muted);max-width:24vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.spacer{flex:1}.save-state{font-size:11px;display:flex;align-items:center;gap:5px}.dot{width:6px;height:6px;border-radius:50%;background:#709276}.save-state.error{color:#a2462d}.save-state.error .dot{background:#a2462d}.stats{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;margin-bottom:14px}.stat{border-top:1px solid #aebdab;padding-top:9px}.stat-line{display:flex;align-items:baseline;gap:7px}.stat-value{font-size:clamp(22px,2.5vw,34px);font-weight:500;letter-spacing:-1px;font-variant-numeric:tabular-nums}.stat-denom{font-size:13px;color:var(--muted)}.stat-label{font-size:11px;color:var(--muted)}.progress{height:3px;background:#dce4d6;margin-top:7px;border-radius:3px;overflow:hidden}.progress span{display:block;background:var(--green);height:100%;width:0;transition:width .2s}.board-shell{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fffef9}.board-top{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line)}.board-title{font-size:12px;font-weight:600}.board-detail{font-size:10px;color:var(--muted)}.board-legend{display:flex;gap:10px;font-size:10px;color:var(--muted)}.swatch{display:inline-block;height:7px;width:7px;background:#bdd2b1;border-radius:2px;margin-right:3px}.swatch.pending{background:#f0d1a7}.swatch.live{background:#dfebd4}.board{border-collapse:collapse;table-layout:fixed;width:100%;font-variant-numeric:tabular-nums}.board col.hour{width:7%}.board col.max{width:3.6%}.board th,.board td{line-height:1.05;text-align:center;white-space:nowrap;overflow:hidden;padding:0;border-bottom:1px solid #e1e6dc;height:var(--row-height);font-size:clamp(8px,.91vw,13px)}.board thead th{height:calc(var(--row-height) + 5px);font-weight:600;background:#edf1e8;border-right:1px solid var(--line);font-size:clamp(8px,1vw,13px)}.board thead th.today{background:#dbe9cf;color:#24482e;box-shadow:inset 0 3px #648856}.board tbody th,.board tfoot th{font-size:clamp(8px,.85vw,12px);font-weight:500;text-align:left;padding-left:clamp(3px,.7vw,12px);background:#f2f4ec;border-right:1px solid var(--line)}.board td.score{background:#fffef9}.board td.sum{background:#edf2e9;color:#7c8977;border-right:1px solid #cbd6c5;font-size:clamp(8px,.88vw,12px)}.board td.sum.filled{color:#4d6547}.board td.due{background:#fbedd9}.board td.current{box-shadow:inset 0 0 0 1px #9bb58b;background:#f1f6ea}.board td.selected{box-shadow:inset 0 0 0 2px #b47e37}.board td.future{color:#bbc4b5}.board td.max{background:#e4ebdd;color:#62775b;font-size:clamp(8px,.85vw,12px)}.cell-button{display:block;width:100%;height:100%;border:0;border-radius:0;padding:0;background:transparent;font-size:inherit;color:inherit;line-height:1}.cell-button:hover:not(:disabled){background:#c9ddba!important}.cell-button:disabled{opacity:1}.board tfoot td,.board tfoot th{height:calc(var(--row-height) + 3px);border-bottom:0;background:#e5eddd;font-weight:600}.board tfoot td{border-right:1px solid #cbd6c5;font-size:clamp(9px,1vw,14px)}.rating-panel{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 0 8px;min-height:85px}.rating-copy{min-width:0}.rating-kicker{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:#6a7f5c;margin-bottom:2px}.rating-title{font:clamp(18px,1.8vw,25px)/1.2 Georgia,serif}.rating-description{font-size:11px;color:var(--muted);margin-top:4px}.rating-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}.rating-actions>button.score-choice{width:clamp(36px,4vw,56px);height:clamp(36px,4vw,52px);font-size:20px;background:#fffef9;border-color:#b9c8ae}.rating-actions>button.score-choice:hover{background:var(--green);color:white}.rating-actions>button.chosen{background:var(--green);color:white}.footer{border-top:1px solid var(--line);padding-top:9px;display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:10px;color:var(--muted)}.sound-controls{display:flex;align-items:center;gap:7px}.sound-controls button{font-size:10px;padding:4px 7px}.sound-controls input{width:85px;accent-color:var(--green)}.sound-controls output{min-width:26px}.welcome{border:1px dashed #a7b69b;border-radius:10px;background:#eaf0e2;padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:25px;justify-content:space-between}.welcome h2{font:25px Georgia,serif;margin:0 0 7px}.welcome p{font-size:12px;color:#64745c;margin:0;max-width:620px}.welcome-actions{display:flex;gap:7px;flex-shrink:0}.message{border:1px solid #c6a77b;border-radius:7px;background:#fcf0de;padding:9px 12px;font-size:12px;margin:0 0 12px;display:flex;gap:10px;align-items:center;justify-content:space-between}.message[hidden], [hidden]{display:none!important}.message button{font-size:11px;padding:4px 8px;flex-shrink:0}.muted{color:var(--muted)}dialog{background:#fffef9;color:var(--ink);border:1px solid var(--line);border-radius:13px;padding:25px;width:min(500px,calc(100vw - 32px));box-shadow:0 20px 80px #21361e30}dialog::backdrop{background:#21361e50;backdrop-filter:blur(2px)}dialog h2{font:25px Georgia,serif;margin:0 0 10px}dialog p{font-size:13px;line-height:1.65;color:var(--muted);white-space:pre-line}dialog .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}dialog select{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;margin-top:8px}dialog button{font-size:12px}.empty-board .cell-button{color:#c7cdbf}.demo-pill{font-size:9px;color:#8a5d25;border:1px solid #d3b78a;border-radius:4px;padding:2px 5px;margin-left:6px}.kbd-note{font-size:10px;color:var(--muted)}
+@media(min-width:1100px) and (max-height:850px){.masthead{margin-bottom:9px}.toolbar{margin-bottom:10px}.stats{margin-bottom:10px}.rating-panel{min-height:70px;padding-top:9px}.board-top{padding:6px 10px}.footer{padding-top:6px}}
+@media(max-width:750px){.app{padding:9px}.masthead{margin-bottom:12px}.brand-icon{display:none}.toolbar{gap:5px}.toolbar button{font-size:10px;padding:6px}.folder-label{display:none}.stats{gap:10px}.board-top{padding:7px}.board-legend{gap:5px;font-size:8px}.rating-panel{gap:6px}.rating-title{font-size:17px}.rating-actions{gap:4px}.rating-actions>button.score-choice{width:32px;height:36px;font-size:17px}.footer{flex-wrap:wrap}.welcome{display:block;padding:14px}.welcome-actions{margin-top:12px}.clock strong{font-size:14px}.board col.hour{width:10%}.board col.max{width:4%}.board tbody th{font-size:7px;padding-left:2px}.board th,.board td,.board td.sum,.board td.max{font-size:8px}.board thead th{font-size:8px}.board tfoot td{font-size:9px}.kbd-note{display:none}}
+@media(max-width:450px){:root{--row-height:clamp(12px,calc((100dvh - 510px)/var(--rows)),28px)}.rating-panel{flex-wrap:wrap}.rating-actions{margin-top:5px}.board th,.board td,.board td.sum,.board td.max{font-size:6px}.board thead th{font-size:6px}.board tfoot td{font-size:7px}.board-detail{font-size:8px}.board-legend{display:none}.clock small{font-size:9px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="masthead"><div class="brand"><div class="brand-icon" aria-hidden="true">◷</div><div><div class="eyebrow">A little better, every hour</div><h1>Hour by Hour</h1></div></div><div class="clock"><strong id="clock">—</strong><small id="clockDate">10 days · 200 hours · 1,000 possibilities</small></div></header>
+  <nav class="toolbar" aria-label="Tracker controls"><button class="primary" id="folderBtn">Select folder</button><span class="folder-label" id="folderLabel">Your CSV stays on your computer</span><button id="previousBtn" disabled>Open previous</button><button id="importBtn" disabled>Import CSV</button><button id="exportBtn" disabled>Export CSV</button><span class="spacer"></span><span class="save-state" id="saveState" role="status"><span class="dot"></span><span id="saveText">No folder connected</span></span><button id="retryBtn" hidden>Retry save</button><button id="newBtn" disabled>End challenge & start new</button></nav>
+  <div class="message" id="message" role="alert" hidden><span id="messageText"></span><button id="dismissMessage" aria-label="Dismiss message">Dismiss</button></div>
+  <section class="welcome" id="welcome"><div><h2>Make your hours count.</h2><p>Choose a folder to begin a 10-day challenge or resume an existing one. Rate each finished hour from 0 to 5; your board and CSV update together. First rating at 7 AM, last at 2 AM the following morning.</p><p id="compatibility" style="margin-top:7px">Use desktop Chrome or Edge for automatic folder saving.</p></div><div class="welcome-actions"><button class="primary" id="welcomeFolder">Choose a folder</button><button id="demoBtn">Explore demo</button></div></section>
+  <section class="stats" aria-label="Challenge summary"><div class="stat"><div class="stat-label">CHALLENGE SCORE <span id="modePill" class="demo-pill" hidden>DEMO</span></div><div class="stat-line"><span class="stat-value" id="totalScore">0</span><span class="stat-denom" id="challengeDenom">/ 1,000</span></div><div class="progress" role="progressbar" aria-label="Challenge points" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0" id="scoreProgress"><span id="progressBar"></span></div></div><div class="stat"><div class="stat-label" id="dayLabel">TODAY</div><div class="stat-line"><span class="stat-value" id="todayScore">0</span><span class="stat-denom" id="dailyDenom">/ 100</span></div><div class="stat-label" id="todayDetail">20 hours, one at a time</div></div><div class="stat"><div class="stat-label">HOURS RATED</div><div class="stat-line"><span class="stat-value" id="ratedCount">0</span><span class="stat-denom" id="hoursDenom">/ 200</span></div><div class="stat-label" id="pendingDetail">Choose a folder to get started</div></div></section>
+  <section class="board-shell" aria-label="Tracker board"><div class="board-top"><div><span class="board-title" id="challengeTitle">Your 10-day board</span> <span class="board-detail" id="challengeDetail">6 AM – 2 AM</span></div><div class="board-legend"><span><i class="swatch"></i>Rated</span><span><i class="swatch pending"></i>Needs rating</span><span><i class="swatch live"></i>Current hour</span></div></div><table class="board empty-board" id="board" aria-label="Hourly scores and running daily totals"><colgroup id="boardCols"><col class="hour"><col span="20"><col class="max"></colgroup><thead id="boardHead"></thead><tbody id="boardBody"></tbody><tfoot id="boardFoot"></tfoot></table></section>
+  <section class="rating-panel" aria-label="Rate your hour"><div class="rating-copy" aria-live="polite"><div class="rating-kicker" id="ratingKicker">YOUR NEXT SMALL WIN</div><div class="rating-title" id="ratingTitle">A fresh start, hour by hour.</div><div class="rating-description" id="ratingDescription">Your ratings will appear here. The full board stays in view.</div></div><div class="rating-actions" id="ratingActions" hidden><button id="cancelEdit" hidden>Cancel</button><button class="score-choice" data-score="0">0</button><button class="score-choice" data-score="1">1</button><button class="score-choice" data-score="2">2</button><button class="score-choice" data-score="3">3</button><button class="score-choice" data-score="4">4</button><button class="score-choice" data-score="5">5</button><span class="kbd-note">out of 5</span></div></section>
+  <footer class="footer"><span id="footerNote">Hourly score · running total, paired under each date. Click a finished hour to rate or edit it.</span><div class="sound-controls"><button id="soundBtn">Enable sound</button><label for="volume">Volume</label><input id="volume" type="range" min="0" max="100" value="70"><output id="volumeValue" for="volume">70%</output><button id="testBeep">Test beep</button><button id="helpBtn" aria-label="Help and CSV format">?</button></div></footer>
+</main>
+<input type="file" id="csvInput" accept=".csv,text/csv" hidden>
+<dialog id="dialog"><h2 id="dialogTitle"></h2><p id="dialogText"></p><select id="dialogSelect" hidden aria-label="Choose challenge"></select><div class="dialog-actions"><button id="dialogCancel">Cancel</button><button class="primary" id="dialogConfirm">Continue</button></div></dialog>
+<script>
+'use strict';
+/* Pure scheduling and CSV functions. No browser state is required by this section. */
+const TrackerCore = (() => {
+  const HEADERS = ['format_version','challenge_id','created_at','start_date','timezone','status','ended_at','revision','date','start_time','end_time','score','rated_at'];
+  const pad = n => String(n).padStart(2,'0');
+  function validDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s+'T00:00:00Z')) && new Date(s+'T00:00:00Z').toISOString().slice(0,10) === s; }
+  function addDays(s,n) { const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10); }
+  function zoneParts(now,timezone) {
+    const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(now).map(x=>[x.type,x.value]));
+    return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`,second:Number(p.second)};
+  }
+  function schedule(c={}) {
+    const version=c.version??(c.blocks?.length===240?'1':'2');
+    if(!['1','2'].includes(version))throw Error('Unsupported challenge format version.');
+    const days=version==='1'?15:10,hours=version==='1'?16:20,startHour=version==='1'?7:6;
+    return {version,days,hours,startHour,dailyMax:hours*5,totalMax:days*hours*5};
+  }
+  function makeBlocks(start,version='2') {
+    const {days,hours,startHour}=schedule({version});
+    return Array.from({length:days*hours},(_,i)=>({date:addDays(start,Math.floor(i/hours)),start:`${pad((startHour+i%hours)%24)}:00`,end:`${pad((startHour+i%hours+1)%24)}:00`,score:null,ratedAt:''}));
+  }
+  function create(now=new Date(),timezone=Intl.DateTimeFormat().resolvedOptions().timeZone) {
+    const start=zoneParts(now,timezone).date;
+    return {version:'2',id:globalThis.crypto?.randomUUID?.()||`c-${now.getTime()}-${Math.random().toString(36).slice(2)}`,createdAt:now.toISOString(),startDate:start,timezone,status:'active',endedAt:'',revision:0,blocks:makeBlocks(start)};
+  }
+  // CSV date is the board's tracking-day date, including that day's hours after midnight.
+  function bounds(b,c={}) {
+    const {startHour}=schedule(c);
+    const startDate=addDays(b.date,Number(b.start.slice(0,2))<startHour?1:0);
+    const endDate=addDays(b.date,Number(b.end.slice(0,2))<startHour?1:0);
+    return {startDate,endDate,startKey:`${startDate}T${b.start}`,endKey:`${endDate}T${b.end}`};
+  }
+  function trackingDate(c,now=new Date()) {
+    const p=zoneParts(now,c.timezone);
+    return addDays(p.date,p.time<`${pad(schedule(c).startHour)}:00`?-1:0);
+  }
+  function isDue(b,now,timezone,c={}) { const p=zoneParts(now,timezone);return bounds(b,c).endKey<=`${p.date}T${p.time}`; }
+  function pending(c,now=new Date()) {
+    if(c.status!=='active')return [];
+    const p=zoneParts(now,c.timezone),key=`${p.date}T${p.time}`;
+    return c.blocks.map((b,i)=>b.score===null&&bounds(b,c).endKey<=key?i:-1).filter(i=>i>=0);
+  }
+  function totals(c) {
+    const {days,hours}=schedule(c),daily=Array(days).fill(0),running=[],rowMax=Array(hours).fill(0);let rated=0;
+    c.blocks.forEach((b,i)=>{const day=Math.floor(i/hours);daily[day]+=b.score??0;running[i]=daily[day];rowMax[i%hours]=Math.max(rowMax[i%hours],running[i]);if(b.score!==null)rated++;});
+    return {daily,running,rowMax,maxDaily:Math.max(...daily),total:daily.reduce((a,b)=>a+b,0),rated};
+  }
+  // One shared five-minute slot avoids duplicate hourly/reminder beeps and alarm bursts after sleep.
+  function alarmSlot(c,now=new Date()) {
+    if(c.status!=='active')return null;
+    const p=zoneParts(now,c.timezone),minute=Number(p.time.slice(3)),slot=`${p.date}T${p.time.slice(0,3)}${pad(Math.floor(minute/5)*5)}`;
+    return c.blocks.some(b=>b.score===null&&bounds(b,c).endKey<=slot)?slot:null;
+  }
+  function escapeCSV(v) { const s=String(v??'');return /[",\r\n]/.test(s)?'"'+s.replaceAll('"','""')+'"':s; }
+  function serialize(c) {
+    const meta=[schedule(c).version,c.id,c.createdAt,c.startDate,c.timezone,c.status,c.endedAt,String(c.revision)];
+    return HEADERS.join(',')+'\r\n'+c.blocks.map(b=>[...meta,b.date,b.start,b.end,b.score??'',b.ratedAt].map(escapeCSV).join(',')).join('\r\n')+'\r\n';
+  }
+  function csvRows(text) { const rows=[];let row=[],cell='',quoted=false,closed=false;text=text.replace(/^\uFEFF/,'');for(let i=0;i<text.length;i++){const ch=text[i];if(quoted){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++;}else{quoted=false;closed=true;}}else cell+=ch;}else if(ch==='"'){if(cell||closed)throw Error('Unexpected quote in CSV.');quoted=true;}else if(ch===','){row.push(cell);cell='';closed=false;}else if(ch==='\r'||ch==='\n'){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>v!==''))rows.push(row);row=[];cell='';closed=false;}else {if(closed)throw Error('Unexpected text after a quoted CSV field.');cell+=ch;}}if(quoted)throw Error('Unclosed quote in CSV.');row.push(cell);if(row.some(v=>v!==''))rows.push(row);return rows; }
+  function parse(text) {
+    const rows=csvRows(text),headers=rows.shift();
+    if(!headers||headers.join(',')!==HEADERS.join(','))throw Error('This CSV does not use the Hour by Hour format. Use Export CSV as a template.');
+    if(!rows.length||rows.some(r=>r.length!==HEADERS.length))throw Error('Some CSV rows have missing or extra fields.');
+    const first=rows[0],[version,id,created,start,timezone,status,ended,revision]=first,spec=schedule({version});
+    if(rows.length!==spec.days*spec.hours)throw Error(`A version ${version} tracker CSV must contain exactly ${spec.days*spec.hours} hourly rows.`);
+    if(!/^[-a-zA-Z0-9]{1,100}$/.test(id)||!validDate(start)||!/^\d+$/.test(revision)||!Number.isSafeInteger(Number(revision)))throw Error('Invalid challenge metadata.');
+    const validStamp=s=>/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString()===s;
+    if(!validStamp(created)||!['active','ended'].includes(status)||(status==='ended'?!validStamp(ended):ended!==''))throw Error('Invalid challenge dates or status.');
+    try{zoneParts(new Date(),timezone);}catch{throw Error('Unrecognized challenge timezone.');}
+    const c={version,id,createdAt:created,startDate:start,timezone,status,endedAt:ended,revision:Number(revision),blocks:[]},expected=makeBlocks(start,version),seen=new Set();
+    for(const r of rows){
+      if(r.slice(0,8).join('\0')!==first.slice(0,8).join('\0'))throw Error('Challenge metadata must match on every CSV row.');
+      const date=r[8],hour=Number(r[9].slice(0,2)),offset=(hour-spec.startHour+24)%24,day=(Date.parse(date+'T00:00:00Z')-Date.parse(start+'T00:00:00Z'))/86400000,index=day*spec.hours+offset;
+      if(!validDate(date)||!Number.isInteger(day)||day<0||day>=spec.days||offset>=spec.hours||seen.has(index)||r[9]!==expected[index]?.start||r[10]!==expected[index]?.end)throw Error('CSV has invalid, duplicate, or out-of-range hour blocks.');
+      if(r[11]!==''&&!/^[0-5]$/.test(r[11]))throw Error('Scores must be blank or an integer from 0 to 5.');
+      if((r[11]===''&&r[12]!=='')||(r[12]!==''&&!validStamp(r[12])))throw Error('Invalid rating timestamp.');
+      seen.add(index);c.blocks[index]={date,start:r[9],end:r[10],score:r[11]===''?null:Number(r[11]),ratedAt:r[12]};
+    }
+    return c;
+  }
+  function latest(entries) { return [...entries].sort((a,b)=>b.challenge.createdAt.localeCompare(a.challenge.createdAt)||b.challenge.id.localeCompare(a.challenge.id)); }
+  function filename(c) { return 'productivity-'+c.createdAt.replaceAll(':','-').replace('.','-')+'-'+c.id.slice(0,8)+'.csv'; }
+  return {HEADERS,addDays,zoneParts,schedule,makeBlocks,create,bounds,trackingDate,isDue,pending,totals,alarmSlot,serialize,parse,csvRows,latest,filename};
+})();
+globalThis.TrackerCore=TrackerCore;
+
+(() => {
+  const C=TrackerCore,$=id=>document.getElementById(id);
+  let challenge=null,folder=null,fileHandle=null,lastDisk='',demo=false,dirty=false,busy=false,editing=null,dialogResolve=null,audio=null,soundReady=false,lastTick=null,lastAlarmSlot=null,operation=false,conflicted=false;
+  const blank=C.create();
+  let volume=70;
+  try{volume=Math.max(0,Math.min(100,Number(localStorage.getItem('hour-by-hour-volume')??70)));if(!Number.isFinite(volume))volume=70;}catch{}
+  $('volume').value=volume;$('volumeValue').value=volume+'%';
+  const now=()=>new Date();
+  const shortDate=s=>new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(s+'T00:00:00Z')).replace(' ','-');
+  const longDate=s=>new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(s+'T00:00:00Z'));
+  const shortHour=h=>`${Number(h.slice(0,2))%12||12}${Number(h.slice(0,2))>=12?'PM':'AM'}`;
+  const blockLabel=b=>`${shortHour(b.start)} – ${shortHour(b.end)}`;
+  function message(s){$('messageText').textContent=s;$('message').hidden=!s;}
+  function saveState(s,error=false){$('saveText').textContent=s;$('saveState').classList.toggle('error',error);$('retryBtn').hidden=!dirty||demo;}
+  function ask(title,text,confirm='Continue',options=null,cancel='Cancel') { return new Promise(resolve=>{if(dialogResolve)throw Error('Another dialog is already open.');dialogResolve=resolve;$('dialogTitle').textContent=title;$('dialogText').textContent=text;$('dialogConfirm').textContent=confirm;$('dialogCancel').textContent=cancel;$('dialogCancel').hidden=!cancel;$('dialogSelect').hidden=!options;$('dialogSelect').replaceChildren();if(options)for(const o of options){const opt=document.createElement('option');opt.value=o.value;opt.textContent=o.label;$('dialogSelect').append(opt);}$('dialog').showModal();}); }
+  function finishDialog(accepted){const value=accepted?($('dialogSelect').hidden?true:$('dialogSelect').value):null;$('dialog').close();const resolve=dialogResolve;dialogResolve=null;resolve?.(value);}
+  $('dialogConfirm').onclick=()=>finishDialog(true);$('dialogCancel').onclick=()=>finishDialog(false);$('dialog').addEventListener('cancel',e=>{e.preventDefault();finishDialog(false);});
+  function controls(){for(const id of ['folderBtn','welcomeFolder','demoBtn'])$(id).disabled=operation||busy;$('previousBtn').disabled=!folder||operation||busy;$('importBtn').disabled=!folder||operation||busy;$('exportBtn').disabled=!challenge||operation||busy;$('newBtn').disabled=!challenge||demo||operation||busy;$('newBtn').textContent=challenge?.status==='ended'?'Start new challenge':'End challenge & start new';$('retryBtn').disabled=busy||operation;}
+  async function perform(fn){if(operation||busy)return;operation=true;controls();try{await fn();}catch(e){if(e.name!=='AbortError')message(e.message||String(e));}finally{operation=false;controls();render();}}
+  function recoveryKey(c=challenge){return 'hour-by-hour-recovery-'+c.id;}
+  function cache(pending=true){if(!challenge||demo)return;try{localStorage.setItem(recoveryKey(),JSON.stringify({filename:fileHandle?.name,base:lastDisk,csv:C.serialize(challenge),pending}));}catch{message('Browser recovery storage is unavailable. Keep the app open until the CSV is saved.');}}
+  async function persist(){if(!challenge||demo)return true;busy=true;controls();renderRating();saveState('Saving…');cache(true);const text=C.serialize(challenge);try{const actual=await (await fileHandle.getFile()).text();if(actual!==lastDisk){conflicted=true;throw Error('The CSV changed outside this app. Your unsaved ratings are retained here. Export a recovery copy, then reselect the folder to load the changed file.');}const writable=await fileHandle.createWritable();try{await writable.write(text);await writable.close();}catch(e){try{await writable.abort();}catch{}throw e;}lastDisk=text;dirty=false;conflicted=false;cache(false);saveState('Saved to CSV');return true;}catch(e){dirty=true;saveState(conflicted?'File changed · export recovery':'Not saved · retry',true);message(e.message||'Could not save the CSV. Your ratings remain in this page. Retry saving or export a copy.');return false;}finally{busy=false;controls();renderRating();}}
+  async function ensureSaved(){if(!dirty)return true;if(!conflicted&&await persist())return true;const yes=await ask('Keep your unsaved ratings',`${conflicted?'The CSV changed outside the app.':'The CSV could not be saved.'} Export your pending ratings as a recovery copy before switching. The disk file will stay untouched.`,'Export & continue',null,'Stay here');if(!yes)return false;download(C.serialize(challenge),'recovery-'+fileHandle.name);dirty=false;saveState('Recovery exported · CSV unchanged');return true;}
+  async function loadEntry(entry){challenge=entry.challenge;fileHandle=entry.handle;lastDisk=entry.text;demo=false;dirty=false;conflicted=false;editing=null;lastTick=now();lastAlarmSlot=C.alarmSlot(challenge,lastTick);$('welcome').hidden=true;$('folderLabel').textContent=`${folder.name} / ${fileHandle.name}`;saveState('Saved to CSV');let recovery;try{recovery=JSON.parse(localStorage.getItem(recoveryKey())||'null');}catch{}if(recovery?.pending&&recovery.csv!==entry.text){if(recovery.base===entry.text){const restore=await ask('Recover unsaved ratings?','A previous session kept ratings that did not reach this CSV. Restore and save them, or keep the file currently on disk.','Restore ratings',null,'Keep disk file');if(restore){challenge=C.parse(recovery.csv);dirty=true;await persist();}else cache(false);}else{const choice=await ask('A recovery copy is available','This CSV was also changed outside the app. You can download the unsaved recovery copy before continuing with the disk version.','Download recovery',null,'Use disk version');if(choice)download(recovery.csv,'recovery-'+fileHandle.name);}}render();}
+  async function entries(){const valid=[],invalid=[];for await(const [name,handle] of folder.entries()){if(handle.kind!=='file'||!/\.csv$/i.test(name))continue;try{const f=await handle.getFile();if(f.size>2*1024*1024)throw Error('File is too large.');const text=await f.text();valid.push({name,handle,text,challenge:C.parse(text)});}catch(e){invalid.push({name,error:e.message});}}return {valid:C.latest(valid),invalid};}
+  async function createFile(c){const name=C.filename(c);try{await folder.getFileHandle(name);throw Error('A file with this challenge name already exists. Please try again.');}catch(e){if(e.name!=='NotFoundError')throw e;}const handle=await folder.getFileHandle(name,{create:true});const text=C.serialize(c);const writable=await handle.createWritable();try{await writable.write(text);await writable.close();}catch(e){try{await writable.abort();}catch{}throw e;}await loadEntry({challenge:c,handle,text});}
+  async function chooseFolder(){if(!('showDirectoryPicker' in window))throw Error('Automatic folder saving requires desktop Chrome or Edge. Open this HTML file in one of those browsers.');if(!await ensureSaved())return;await enableSound(false);const chosen=await window.showDirectoryPicker({id:'hour-by-hour',mode:'readwrite'});const oldFolder=folder;folder=chosen;try{const found=await entries();if(found.valid.length){await loadEntry(found.valid[0]);if(found.invalid.length)message(`Opened the latest valid challenge. ${found.invalid.length} unreadable tracker file(s) were left untouched: ${found.invalid.map(x=>x.name).join(', ')}.`);}else if(found.invalid.length){throw Error('Tracker CSV files were found but could not be read. No new file was created. '+found.invalid.map(x=>`${x.name}: ${x.error}`).join(' '));}else{await createFile(C.create());message('Challenge created. Completed hours from today are ready to rate. Blank cells mean unrated.');}}catch(e){folder=oldFolder;throw e;}}
+  async function openPrevious(){if(!await ensureSaved())return;const found=await entries();if(!found.valid.length)throw Error('No valid tracker CSV files found.');const value=await ask('Open a challenge','The most recently created challenge is listed first. All CSV files stay in your folder.','Open',found.valid.map((e,i)=>({value:String(i),label:`${longDate(e.challenge.startDate)} · ${e.challenge.createdAt.slice(11,19)} UTC · ${e.challenge.status} · ${C.totals(e.challenge).total}/${C.schedule(e.challenge).totalMax}`})));if(value!==null)await loadEntry(found.valid[Number(value)]);}
+  function download(text,name){const url=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  async function startNew(){if(!await ensureSaved())return;const ended=challenge.status==='ended';const yes=await ask(ended?'Start a fresh challenge?':'End this challenge & start fresh?',`Your existing CSV will be preserved${ended?'':', marked as ended,'} and remain available under Open previous. A separate 10-day challenge will start today, ${longDate(C.zoneParts(now(),Intl.DateTimeFormat().resolvedOptions().timeZone).date)}.\n\nAny unrated hours in the old challenge will remain blank.`,ended?'Start new challenge':'End & start new');if(!yes)return;if(!ended){challenge.status='ended';challenge.endedAt=now().toISOString();challenge.revision++;dirty=true;if(!await persist())return;}await createFile(C.create());message('New challenge started. Your previous CSV is preserved in the same folder.');}
+  async function importFile(file){if(!file)return;if(file.size>2*1024*1024)throw Error('Choose a tracker CSV smaller than 2 MB.');const c=C.parse(await file.text());const yes=await ask('Import this challenge?',`${longDate(c.startDate)} – ${longDate(C.addDays(c.startDate,C.schedule(c).days-1))}\n${C.totals(c).rated} hours rated · ${C.totals(c).total}/${C.schedule(c).totalMax.toLocaleString()} points · ${c.status}\n\nA separate CSV copy will be saved in your selected folder. Existing files will be preserved.`,'Import copy');if(!yes)return;if(!await ensureSaved())return;c.id=crypto.randomUUID();await createFile(c);message('CSV imported as a separate copy. Its original dates and scores are preserved.');}
+  async function enableSound(test=true){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('Audio is not supported by this browser.');if(!audio||audio.state==='closed')audio=new Audio();await audio.resume();soundReady=audio.state==='running';$('soundBtn').textContent=soundReady?'Sound on':'Enable sound';if(test&&soundReady)beep();}catch(e){soundReady=false;message('Sound could not be enabled. '+e.message);}}
+  function beep(){if(!soundReady||!audio||audio.state!=='running'||volume===0)return;const t=audio.currentTime,osc=audio.createOscillator(),gain=audio.createGain();osc.type='sine';osc.frequency.value=880;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(volume/100*.7,t+.015);gain.gain.setValueAtTime(volume/100*.7,t+.65);gain.gain.exponentialRampToValueAtTime(.0001,t+.85);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.86);osc.onended=()=>{osc.disconnect();gain.disconnect();};}
+  function displayClock(){const c=challenge||blank,n=now(),p=C.zoneParts(n,c.timezone);$('clock').textContent=new Intl.DateTimeFormat('en-US',{timeZone:c.timezone,hour:'numeric',minute:'2-digit',second:'2-digit'}).format(n);$('clockDate').textContent=`${longDate(p.date)} · ${c.timezone}`;}
+  function currentIndex(){if(!challenge)return null;if(editing!==null)return editing;return C.pending(challenge,now())[0]??null;}
+  function renderRating(){
+    const index=currentIndex(),active=challenge&&!demo;
+    for(const b of document.querySelectorAll('[data-score]')){b.disabled=busy||operation;b.classList.toggle('chosen',index!==null&&challenge.blocks[index].score===Number(b.dataset.score));}
+    $('cancelEdit').disabled=busy||operation;$('ratingActions').hidden=index===null;$('cancelEdit').hidden=editing===null;
+    if(!challenge){$('ratingKicker').textContent='YOUR NEXT SMALL WIN';$('ratingTitle').textContent='A fresh start, hour by hour.';$('ratingDescription').textContent='Choose a folder to begin. Your board will stay in view.';return;}
+    if(index!==null){
+      const b=challenge.blocks[index],pending=C.pending(challenge,now()).length,bounds=C.bounds(b,challenge);
+      $('ratingKicker').textContent=editing!==null?'EDIT HOURLY SCORE':`${pending} ${pending===1?'HOUR':'HOURS'} WAITING${demo?' · DEMO':''}`;
+      $('ratingTitle').textContent=`${shortDate(b.date)} · ${blockLabel(b)}`;
+      $('ratingDescription').textContent=busy?'Saving your rating…':`How productive was this hour?${bounds.startDate!==b.date?` After midnight on ${shortDate(bounds.startDate)}; counts toward ${shortDate(b.date)}.`:''}${editing===null&&pending>1?' Next pending hour appears after you score.':''}${editing===null?' Reminders every 5 min until rated.':''}`;
+      return;
+    }
+    const p=C.zoneParts(now(),challenge.timezone),next=challenge.blocks.find(b=>b.score===null&&C.bounds(b,challenge).endKey>`${p.date}T${p.time}`);
+    if(challenge.status==='ended'){
+      $('ratingKicker').textContent='CHALLENGE ENDED';$('ratingTitle').textContent='Every hour is part of the story.';$('ratingDescription').textContent='This CSV is preserved. Click a completed cell to correct it, or start a new challenge.';
+    }else if(!next){
+      $('ratingKicker').textContent=`${C.schedule(challenge).days} DAYS COMPLETE`;$('ratingTitle').textContent='Your challenge is complete.';$('ratingDescription').textContent=`All ${challenge.blocks.length} hours are rated. Review your board or start a fresh challenge.`;
+    }else{
+      $('ratingKicker').textContent=demo?'DEMO · CHANGES ARE NOT SAVED':'YOU’RE ALL CAUGHT UP';$('ratingTitle').textContent=`Next rating at ${shortHour(next.end)}`;
+      $('ratingDescription').textContent=`${shortDate(C.bounds(next,challenge).endDate)} · ${blockLabel(next)}. Keep this page open and your computer awake for the beep.`;
+    }
+    if(active&&!soundReady)$('ratingDescription').textContent+=' Enable sound below for hourly beeps.';
+  }
+  function render(){
+    const c=challenge||blank,spec=C.schedule(c),p=C.zoneParts(now(),c.timezone),key=`${p.date}T${p.time}`,trackingDate=C.trackingDate(c,now()),t=C.totals(c),due=new Set(challenge?C.pending(c,now()):[]),selected=currentIndex();
+    document.documentElement.style.setProperty('--rows',spec.hours+2);
+    $('modePill').hidden=!demo;$('board').classList.toggle('empty-board',!challenge);$('welcome').hidden=!!challenge;
+    $('totalScore').textContent=t.total;$('ratedCount').textContent=t.rated;$('progressBar').style.width=(t.total/spec.totalMax*100)+'%';
+    $('scoreProgress').setAttribute('aria-valuenow',t.total);$('scoreProgress').setAttribute('aria-valuemax',spec.totalMax);
+    $('challengeDenom').textContent='/ '+spec.totalMax.toLocaleString();$('dailyDenom').textContent='/ '+spec.dailyMax;$('hoursDenom').textContent='/ '+c.blocks.length;
+    const day=(Date.parse(trackingDate+'T00:00:00Z')-Date.parse(c.startDate+'T00:00:00Z'))/86400000;
+    $('dayLabel').textContent='TRACKING DAY';$('todayScore').textContent=day>=0&&day<spec.days?t.daily[day]:'—';
+    $('todayDetail').textContent=day>=0&&day<spec.days?`${shortDate(trackingDate)} · ${spec.hours} hours · ${day+1} of ${spec.days} dates`:'Today is outside this challenge';
+    $('pendingDetail').textContent=!challenge?'Choose a folder to get started':c.status==='ended'?'Ended · CSV preserved':`${due.size} ${due.size===1?'hour needs':'hours need'} a rating`;
+    $('challengeTitle').textContent=`${shortDate(c.startDate)} – ${shortDate(C.addDays(c.startDate,spec.days-1))}`;
+    $('challengeDetail').textContent=`${c.startDate.slice(0,4)} · ${spec.version==='1'?'7 AM – 11 PM · Original schedule':'6 AM – 2 AM next day'}${c.status==='ended'?' · Ended':''}`;
+    $('boardCols').innerHTML=`<col class="hour"><col span="${spec.days*2}"><col class="max">`;
+    const head=document.createElement('tr'),hour=document.createElement('th');hour.scope='col';hour.textContent='Hour';head.append(hour);
+    for(let d=0;d<spec.days;d++){
+      const date=C.addDays(c.startDate,d),th=document.createElement('th');th.colSpan=2;th.scope='colgroup';th.textContent=shortDate(date);th.className=date===trackingDate?'today':'';th.title=longDate(date)+' · hourly score, running total';head.append(th);
+    }
+    const max=document.createElement('th');max.textContent='Max';max.scope='col';max.title='Highest recorded running total in this row across all dates';head.append(max);$('boardHead').replaceChildren(head);
+    const rows=[];
+    for(let h=0;h<spec.hours;h++){
+      const tr=document.createElement('tr'),th=document.createElement('th');th.scope='row';th.textContent=blockLabel(c.blocks[h]);if(Number(c.blocks[h].start.slice(0,2))<spec.startHour)th.title='After midnight, counted toward the date above';tr.append(th);
+      for(let d=0;d<spec.days;d++){
+        const i=d*spec.hours+h,b=c.blocks[i],bounds=C.bounds(b,c),isDue=bounds.endKey<=key,live=bounds.startKey<=key&&key<bounds.endKey,td=document.createElement('td'),button=document.createElement('button');
+        td.className='score'+(due.has(i)?' due':'')+(live?' current':'')+(selected===i?' selected':'')+(!isDue?' future':'');
+        button.className='cell-button';button.dataset.index=i;button.textContent=b.score??(due.has(i)?'·':'—');button.disabled=!challenge||!isDue||busy||operation;
+        button.setAttribute('aria-label',`${longDate(b.date)} tracking day, ${blockLabel(b)}, ${b.score===null?'unrated':'score '+b.score+' out of 5'}${!isDue?', not yet complete':''}`);
+        if(b.score!==null)td.style.backgroundColor=['#f2ddd7','#f5ecdc','#ebe9d4','#e0e8cd','#ccdfbd','#b6d1a5'][b.score];td.append(button);
+        const sum=document.createElement('td');sum.className='sum'+(b.score!==null?' filled':'');sum.textContent=challenge&&(isDue||b.score!==null)?t.running[i]:'—';sum.title=`${shortDate(b.date)} running total: ${t.running[i]}`;tr.append(td,sum);
+      }
+      const maxTD=document.createElement('td');maxTD.className='max';maxTD.textContent=t.rowMax[h];maxTD.title='Highest running total recorded at this hour across the dates above';tr.append(maxTD);rows.push(tr);
+    }
+    $('boardBody').replaceChildren(...rows);
+    const foot=document.createElement('tr'),total=document.createElement('th');total.scope='row';total.textContent='Total';foot.append(total);
+    for(let d=0;d<spec.days;d++){const td=document.createElement('td');td.colSpan=2;td.textContent=t.daily[d];td.title=`${shortDate(C.addDays(c.startDate,d))}: ${t.daily[d]} out of ${spec.dailyMax}`;foot.append(td);}
+    const maxFoot=document.createElement('td');maxFoot.textContent=t.maxDaily;maxFoot.title='Highest recorded daily total';foot.append(maxFoot);$('boardFoot').replaceChildren(foot);
+    controls();renderRating();displayClock();
+  }
+  async function rate(score){if(busy||operation||!challenge)return;const index=currentIndex();if(index===null||!C.isDue(challenge.blocks[index],now(),challenge.timezone,challenge))return;const b=challenge.blocks[index];b.score=score;b.ratedAt=now().toISOString();challenge.revision++;editing=null;dirty=!demo;if(demo)saveState('Demo · not saved');else await persist();render();}
+  $('boardBody').addEventListener('click',e=>{const b=e.target.closest('[data-index]');if(!b||b.disabled)return;editing=Number(b.dataset.index);render();});
+  document.querySelectorAll('[data-score]').forEach(b=>b.onclick=()=>rate(Number(b.dataset.score)));
+  $('cancelEdit').onclick=()=>{editing=null;render();};
+  $('folderBtn').onclick=$('welcomeFolder').onclick=()=>perform(chooseFolder);
+  $('previousBtn').onclick=()=>perform(openPrevious);$('newBtn').onclick=()=>perform(startNew);
+  $('importBtn').onclick=()=>{if(!busy&&!operation)$('csvInput').click();};$('csvInput').onchange=e=>{const file=e.target.files[0];e.target.value='';perform(()=>importFile(file));};
+  $('exportBtn').onclick=()=>{if(challenge)download(C.serialize(challenge),(dirty?'recovery-':'')+(fileHandle?.name||C.filename(challenge)));};
+  $('retryBtn').onclick=()=>perform(persist);$('dismissMessage').onclick=()=>message('');
+  $('demoBtn').onclick=()=>{demo=true;challenge=C.create();challenge.blocks.forEach((b,i)=>{if(i<C.schedule(challenge).hours&&C.isDue(b,now(),challenge.timezone,challenge)&&i%4!==3){b.score=[4,5,3,4,5][i%5];b.ratedAt=now().toISOString();}});editing=null;dirty=false;lastTick=now();lastAlarmSlot=C.alarmSlot(challenge,lastTick);saveState('Demo · not saved');message('Demo mode: explore the board and rating buttons. Choose a folder to start your real challenge.');render();};
+  $('volume').oninput=e=>{volume=Number(e.target.value);$('volumeValue').value=volume+'%';try{localStorage.setItem('hour-by-hour-volume',String(volume));}catch{}};
+  $('soundBtn').onclick=async()=>{if(soundReady){soundReady=false;$('soundBtn').textContent='Enable sound';}else await enableSound(false);renderRating();};$('testBeep').onclick=()=>enableSound(true);
+  $('helpBtn').onclick=()=>perform(()=>ask('Your hours, at a glance','Each date has two columns: hourly score on the left, running daily total on the right. Rate finished hours using 0–5. Zero is a recorded rating; a blank is unrated. Max shows the highest recorded running total at each row across the challenge dates. A blank cell is unrated.\n\nChoose a folder each time you reopen the app. The newest challenge is selected by its creation timestamp. Open previous lets you revisit older challenges. CSV saves happen after every rating; the status confirms when saving succeeds.\n\nKeep this page open, sound enabled, and your computer awake for hourly beeps and five-minute reminders while ratings are pending. Background tabs can delay alarms. Missed ratings queue automatically when you return.\n\nNew challenges have 10 dates and 20 blocks per date: 6 AM–2 AM, 100 points per day, 1,000 total. Hours after midnight belong to the preceding tracking date. Import accepts the new 200-row CSVs and previous 240-row CSVs, which keep their original schedule. Metadata is repeated on each row so the challenge can be restored from that file alone. Time boundaries use the timezone saved when the challenge was created.\n\nAvoid editing the CSV in another app at the same time. If it changes externally, this app stops writing and offers export of your pending ratings.','Got it',null,''));
+  function tick(){
+    displayClock();if(!challenge)return;
+    const n=now(),slot=C.alarmSlot(challenge,n);
+    if(lastTick&&n>=lastTick&&slot&&slot!==lastAlarmSlot){lastAlarmSlot=slot;if(!demo)beep();}
+    if(lastTick){const p=C.zoneParts(n,challenge.timezone),old=C.zoneParts(lastTick,challenge.timezone);if(`${p.date}T${p.time}`!==`${old.date}T${old.time}`)render();}
+    lastTick=n;
+    if(soundReady&&audio?.state!=='running'){$('soundBtn').textContent='Enable sound';soundReady=false;}
+  }
+  window.addEventListener('focus',tick);document.addEventListener('visibilitychange',tick);window.addEventListener('beforeunload',e=>{if(dirty&&!demo){cache(true);e.preventDefault();e.returnValue='';}});
+  if(!window.isSecureContext||!('showDirectoryPicker' in window))$('compatibility').textContent='Folder saving is unavailable here. Use desktop Chrome/Edge; if needed, open this file through a localhost server.';
+  render();setInterval(tick,1000);
+})();
+</script>
+</body>
+</html>

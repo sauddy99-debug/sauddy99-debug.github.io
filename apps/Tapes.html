@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14120F">
+<title>Tapes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#14120F;
+    --surface:#1E1B17;
+    --surface-2:#28231D;
+    --border:#332C23;
+    --text:#F3EFE7;
+    --text-muted:#948C7C;
+    --text-faint:#5E574A;
+    --rec:#E8542F;
+    --rec-dim:#4A2A20;
+    --play:#D9A441;
+    --play-track:#3A332A;
+    --danger:#C1453B;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overscroll-behavior:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  input{ -webkit-user-select:text; user-select:text; }
+
+  #app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    background:
+      radial-gradient(ellipse 600px 300px at 50% -10%, rgba(217,164,65,0.07), transparent 60%),
+      var(--bg);
+  }
+
+  .view{ display:none; flex-direction:column; flex:1; min-height:0; }
+  .view.active{ display:flex; }
+
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex; align-items:center; gap:12px;
+    padding:20px 20px 14px;
+    position:sticky; top:0; z-index:5;
+    background:linear-gradient(var(--bg) 70%, transparent);
+  }
+  .topbar h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:22px; font-weight:700; letter-spacing:-0.01em;
+    margin:0; flex:1; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .icon-btn{
+    width:38px; height:38px; border-radius:var(--radius-sm);
+    border:1px solid var(--border); background:var(--surface);
+    color:var(--text); display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; cursor:pointer;
+  }
+  .icon-btn:active{ background:var(--surface-2); }
+  .icon-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+  .icon-btn.danger{ color:var(--danger); }
+  .folder-btn{
+    border:1px solid var(--border); background:var(--surface); color:var(--text);
+    border-radius:var(--radius-sm); padding:9px 11px; font-family:'Inter', sans-serif;
+    font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .folder-btn:active{ background:var(--surface-2); }
+  .icon-btn svg{ width:18px; height:18px; }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--text-faint); padding:0 20px; margin-top:-6px; margin-bottom:14px;
+  }
+
+  /* ---------- Scroll area ---------- */
+  .scroll{ flex:1; overflow-y:auto; padding:0 16px 24px; -webkit-overflow-scrolling:touch; }
+
+  /* ---------- Empty state ---------- */
+  .empty{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:10px; padding:60px 30px; color:var(--text-muted);
+  }
+  .empty svg{ width:40px; height:40px; opacity:0.5; margin-bottom:6px; }
+  .empty .t1{ font-size:15px; font-weight:600; color:var(--text); }
+  .empty .t2{ font-size:13px; line-height:1.5; }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:16px;
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:14px;
+    cursor:pointer;
+  }
+  .card:active{ background:var(--surface-2); }
+  .card-icon{
+    width:44px; height:44px; border-radius:var(--radius-md);
+    background:var(--surface-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    color:var(--play);
+  }
+  .card-icon svg{ width:20px; height:20px; }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:15px; font-weight:600; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-sub{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text-muted); }
+  .card-trash{
+    width:34px; height:34px; border-radius:var(--radius-sm); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:var(--text-faint);
+  }
+  .card-trash:active{ color:var(--danger); background:rgba(193,69,59,0.12); }
+  .card-trash svg{ width:16px; height:16px; }
+  button.card-trash{ border:0; background:transparent; cursor:pointer; }
+  .card-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .folder-error{ color:var(--rec); }
+  .field-error{ color:var(--rec); font-size:13px; line-height:1.5; }
+  .card-sub{ overflow-wrap:anywhere; }
+  .eyebrow{ overflow-wrap:anywhere; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  .chevron{ color:var(--text-faint); flex-shrink:0; }
+  .chevron svg{ width:16px; height:16px; }
+
+  /* ---------- FAB ---------- */
+  .fab-wrap{ padding:14px 20px calc(18px + var(--safe-bottom)); }
+  .fab{
+    width:100%; border:none; border-radius:var(--radius-lg);
+    background:var(--text); color:var(--bg);
+    font-family:'Inter'; font-size:15px; font-weight:600;
+    padding:16px; display:flex; align-items:center; justify-content:center; gap:8px;
+    cursor:pointer;
+  }
+  .fab:active{ opacity:0.85; }
+  .fab svg{ width:18px; height:18px; }
+  .fab.rec-fab{ background:var(--rec); color:#fff; }
+
+  /* ---------- Recording card w/ waveform ---------- */
+  .rec-card{ flex-direction:column; align-items:stretch; gap:0; cursor:default; }
+  .rec-header{ display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+  .rec-top{ display:flex; align-items:center; gap:12px; cursor:pointer; flex:1 1 180px; min-width:0; }
+  .rec-tools{ display:flex; align-items:center; gap:4px; margin-left:auto; }
+  .rec-tools .icon-btn{ width:32px; height:32px; background:var(--surface-2); }
+  .rec-tools .icon-btn svg{ width:16px; height:16px; }
+  .speed-control{ position:relative; }
+  .speed-control.is-adjusted{ color:var(--play); border-color:var(--play); }
+  .speed-select{
+    position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer;
+    color-scheme:dark; font-size:13px;
+  }
+  .speed-control:focus-within, .rec-tools button:focus-visible{
+    outline:2px solid var(--play); outline-offset:2px;
+  }
+  .mic-session{
+    display:flex; align-items:center; justify-content:flex-end; gap:8px;
+    padding:6px 20px; border-bottom:1px solid var(--border);
+    font-size:12px; color:var(--text-muted);
+  }
+  .mic-session[hidden]{ display:none; }
+  .mic-session .icon-btn{ width:28px; height:28px; }
+  .mic-option{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); }
+  .mic-option input{ accent-color:var(--play); width:16px; height:16px; }
+
+  .waveform{
+    display:flex; align-items:center; gap:2px;
+    height:36px; margin-top:12px; cursor:pointer; padding:2px 0;
+  }
+  .waveform .bar{
+    flex:1; min-width:2px; border-radius:2px;
+    background:var(--play-track); transition:background .05s linear;
+  }
+  .time-row{
+    display:flex; justify-content:space-between; margin-top:4px;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text-faint);
+  }
+
+  /* ---------- Recorder view ---------- */
+  .recorder-stage{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:28px; padding:20px;
+  }
+  .append-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--play);
+    background:rgba(217,164,65,0.1); border:1px solid rgba(217,164,65,0.3);
+    padding:6px 14px; border-radius:20px; max-width:90%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .rec-indicator{ display:flex; align-items:center; gap:10px; }
+  .rec-dot{
+    width:11px; height:11px; border-radius:50%; background:var(--text-faint);
+  }
+  .rec-dot.live{ background:var(--rec); animation:pulse 1.1s ease-in-out infinite; }
+  .rec-dot.paused{ background:var(--play); animation:none; }
+  @keyframes pulse{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:0.4; transform:scale(0.85);} }
+  .rec-state-label{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--text-muted);
+  }
+  .timer{
+    font-family:'IBM Plex Mono', monospace; font-weight:600;
+    font-size:56px; letter-spacing:0.02em; color:var(--text);
+    font-variant-numeric:tabular-nums;
+  }
+  .level-bars{ display:flex; align-items:flex-end; gap:4px; height:34px; }
+  .level-bars .lb{ width:4px; border-radius:2px; background:var(--rec); opacity:0.85; height:4px; }
+
+  .transport{ display:flex; align-items:center; gap:22px; }
+  .transport-btn{
+    display:flex; align-items:center; justify-content:center;
+    border:none; cursor:pointer; color:#fff;
+  }
+  .btn-round{ width:64px; height:64px; border-radius:50%; }
+  .btn-primary-round{ width:78px; height:78px; border-radius:50%; }
+  .transport-btn svg{ width:26px; height:26px; }
+  .btn-record{ background:var(--rec); }
+  .btn-pause{ background:var(--surface-2); border:1px solid var(--border); color:var(--text); }
+  .btn-resume{ background:var(--rec); }
+  .btn-stop{ background:var(--text); color:var(--bg); }
+  .btn-stop svg{ width:22px; height:22px; }
+
+  .recorder-hint{ font-size:13px; color:var(--text-faint); text-align:center; max-width:260px; }
+
+  /* ---------- Save / append panel ---------- */
+  .panel{
+    padding:20px 20px calc(20px + var(--safe-bottom));
+    border-top:1px solid var(--border);
+    background:var(--surface);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .panel-title{ font-size:14px; font-weight:600; color:var(--text-muted); }
+  .field-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); margin-bottom:6px; display:block;}
+  .text-input{
+    width:100%; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:13px 14px; color:var(--text);
+    font-family:'Inter'; font-size:15px;
+  }
+  .text-input:focus{ outline:none; border-color:var(--play); }
+  .panel-row{ display:flex; gap:10px; }
+  .btn{
+    flex:1; padding:14px; border-radius:var(--radius-md); border:none;
+    font-family:'Inter'; font-size:14.5px; font-weight:600; cursor:pointer;
+  }
+  .btn-ghost{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  .btn-solid{ background:var(--text); color:var(--bg); }
+  .btn-danger{ background:var(--danger); color:#fff; }
+  .btn:active{ opacity:0.85; }
+
+  /* ---------- Mini player bar ---------- */
+  .mini-hint{ font-size:12px; color:var(--text-faint); text-align:center; padding:6px 0 2px; }
+
+  /* ---------- Modal (confirm/new project) ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.55);
+    display:none; align-items:flex-end; justify-content:center; z-index:20;
+  }
+  .modal-backdrop.active{ display:flex; }
+  .modal-sheet{
+    width:100%; max-width:520px; background:var(--surface);
+    border-radius:20px 20px 0 0; border:1px solid var(--border); border-bottom:none;
+    padding:22px 20px calc(22px + var(--safe-bottom));
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .modal-title{ font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; }
+  .modal-desc{ font-size:13.5px; color:var(--text-muted); line-height:1.5; margin-top:-8px; }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="mic-session" id="mic-session" hidden>
+    <span id="mic-session-status" role="status">Microphone ready (muted)</span>
+    <button class="icon-btn" id="btn-release-mic" aria-label="Release microphone" title="Release microphone"></button>
+  </div>
+
+  <!-- ============ PROJECTS VIEW ============ -->
+  <div class="view active" id="view-projects">
+    <div class="topbar">
+      <h1>Tapes</h1>
+      <button class="icon-btn" id="btn-refresh" aria-label="Refresh folder" title="Refresh folder" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5M6.1 7a7 7 0 0 1 11.6-2L20 8M4 16l2.3 3A7 7 0 0 0 17.9 17"/></svg>
+      </button>
+      <button class="folder-btn" id="btn-import-tapes">Import Tapes</button>
+      <button class="icon-btn" id="btn-new-project" aria-label="New project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div class="eyebrow" id="folder-status">No Tapes folder selected</div>
+    <div class="scroll" id="projects-list"></div>
+    <div class="fab-wrap" id="import-fab-wrap" style="display:none;">
+      <button class="fab" id="btn-import-tapes-main">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h5l2 2h11v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/><path d="M12 12v5M9.5 14.5L12 17l2.5-2.5"/></svg>
+        Import Tapes
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ PROJECT (RECORDINGS) VIEW ============ -->
+  <div class="view" id="view-project">
+    <div class="topbar">
+      <button class="icon-btn" id="btn-back-to-projects" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <h1 id="project-title">Project</h1>
+      <button class="icon-btn" id="btn-rename-project" aria-label="Rename project" title="Rename project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5M4 16 16 4a2 2 0 0 1 4 4L8 20l-5 1z"/></svg>
+      </button>
+      <button class="icon-btn danger" id="btn-delete-project" aria-label="Delete project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg>
+      </button>
+    </div>
+    <div class="eyebrow" id="project-count">Recordings</div>
+    <div class="scroll" id="recordings-list"></div>
+    <div class="fab-wrap">
+      <button class="fab rec-fab" id="btn-new-recording">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+        Record new
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ RECORDER VIEW ============ -->
+  <div class="view" id="view-recorder">
+    <div class="topbar">
+      <button class="icon-btn" id="btn-cancel-recorder" aria-label="Cancel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <h1 id="recorder-title">New recording</h1>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="recorder-stage" id="recorder-stage">
+      <div class="append-tag" id="append-tag" style="display:none;"></div>
+      <div class="rec-indicator">
+        <div class="rec-dot" id="rec-dot"></div>
+        <div class="rec-state-label" id="rec-state-label">Ready</div>
+      </div>
+      <div class="timer" id="timer">00:00</div>
+      <div class="level-bars" id="level-bars"></div>
+      <div class="transport" id="transport-idle">
+        <button class="transport-btn btn-primary-round btn-record" id="btn-start-record" aria-label="Start recording">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg>
+        </button>
+      </div>
+      <div class="transport" id="transport-active" style="display:none;">
+        <button class="transport-btn btn-round btn-pause" id="btn-pause-resume" aria-label="Pause">
+          <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+          <svg id="icon-resume" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="transport-btn btn-primary-round btn-stop" id="btn-stop-record" aria-label="Stop">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+        </button>
+      </div>
+      <div class="recorder-hint" id="recorder-hint">Tap the button to start recording. Keep the app open while recording.</div>
+      <label class="mic-option" title="Keep the microphone connection muted between takes until this page closes or you release it.">
+        <input type="checkbox" id="keep-mic-ready" checked>
+        Keep microphone ready
+      </label>
+    </div>
+
+    <!-- Save panel (new recording) -->
+    <div class="panel" id="panel-save" style="display:none;">
+      <div class="panel-title">Save recording</div>
+      <div>
+        <label class="field-label">Name</label>
+        <input type="text" class="text-input" id="input-recording-name" maxlength="80">
+      </div>
+      <div id="save-project-field" style="display:none;">
+        <label class="field-label" for="save-project">Project</label>
+        <select class="text-input" id="save-project"></select>
+        <button class="folder-btn" id="btn-draft-project" style="margin-top:8px;">New project</button>
+      </div>
+      <div class="panel-row">
+        <button class="btn btn-ghost" id="btn-discard-new">Discard</button>
+        <button class="btn btn-solid" id="btn-save-new">Save</button>
+      </div>
+    </div>
+
+    <!-- Save panel (append) -->
+    <div class="panel" id="panel-append" style="display:none;">
+      <div class="panel-title" id="append-panel-title">Add this to the recording?</div>
+      <div class="panel-row">
+        <button class="btn btn-ghost" id="btn-discard-append">Discard</button>
+        <button class="btn btn-solid" id="btn-save-append">Append &amp; save</button>
+      </div>
+      <button class="btn btn-ghost" id="btn-save-separate">Save as new recording</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Shared confirm modal -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal-sheet" id="modal-sheet"></div>
+</div>
+
+<audio id="player" style="display:none;"></audio>
+
+<script>
+(function(){
+'use strict';
+
+/* ===================== Local folder storage ===================== */
+const STORAGE_DB_NAME = 'TapesLocalStorage';
+const STORAGE_DB_VERSION = 1;
+let settingsDbPromise = null;
+let scanPromise = null;
+let folderOperationActive = false;
+
+function openSettingsDB(){
+  if (settingsDbPromise) return settingsDbPromise;
+  settingsDbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(STORAGE_DB_NAME, STORAGE_DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('settings')){
+        db.createObjectStore('settings', { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return settingsDbPromise;
+}
+
+function reqToPromise(req){
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveDirectoryHandle(handle){
+  const db = await openSettingsDB();
+  const tx = db.transaction('settings', 'readwrite');
+  await reqToPromise(tx.objectStore('settings').put({ key:'tapesDirectory', handle }));
+}
+
+async function loadDirectoryHandle(){
+  const db = await openSettingsDB();
+  const tx = db.transaction('settings', 'readonly');
+  const record = await reqToPromise(tx.objectStore('settings').get('tapesDirectory'));
+  return record ? record.handle : null;
+}
+
+async function verifyDirectoryPermission(handle, requestIfNeeded=false){
+  if (!handle) return false;
+  if (!handle.queryPermission || !handle.requestPermission) return true;
+  const opts = { mode:'readwrite' };
+  if (await handle.queryPermission(opts) === 'granted') return true;
+  if (!requestIfNeeded) return false;
+  return (await handle.requestPermission(opts)) === 'granted';
+}
+
+function requireTapesFolder(){
+  if (!state.tapesDirHandle || !state.projects){
+    alert('Import a Tapes folder first.');
+    return false;
+  }
+  return true;
+}
+
+function validateName(value){
+  const name = value.trim();
+  if (!name) throw new Error('Enter a name.');
+  if (name.length > 100 || /[<>:"/\\|?*\x00-\x1F]/.test(name) || /[. ]$/.test(name) || name.startsWith('.')){
+    throw new Error('Use up to 100 characters, without / \\ : * ? " < > |, a leading dot, or a trailing dot.');
+  }
+  if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(name)){
+    throw new Error('That name is reserved by Windows. Choose another name.');
+  }
+  return name;
+}
+
+function currentProject(){
+  return state.projects?.find(p => p.id === state.currentProjectId) || null;
+}
+
+async function sameEntry(a, b){
+  try{ return !!a && !!b && await a.isSameEntry(b); }
+  catch(err){ return false; }
+}
+
+async function findPrevious(entries, handle, name){
+  const named = entries.find(item => item.name === name || item.fileName === name);
+  if (named && await sameEntry(named.handle, handle)) return named;
+  for (const item of entries){
+    if (item !== named && await sameEntry(item.handle, handle)) return item;
+  }
+  return null;
+}
+
+function fileStamp(file){ return `${file.size}:${file.lastModified}`; }
+
+// Disk entries are the source of truth. IDs and audio metadata live only in memory.
+async function scanFolder(){
+  const root = state.tapesDirHandle;
+  if (!root) return;
+  const previous = state.projects || [];
+  const oldRecordings = previous.flatMap(p => p.recordings);
+  const projects = [];
+  for await (const [name, handle] of root.entries()){
+    if (handle.kind !== 'directory' || name.startsWith('.')) continue;
+    const old = await findPrevious(previous, handle, name);
+    const project = { id:old?.id || uid(), name, handle, recordings:[] };
+    for await (const [fileName, fileHandle] of handle.entries()){
+      if (fileHandle.kind !== 'file' || !/\.wav$/i.test(fileName) || fileName.startsWith('.')) continue;
+      const file = await fileHandle.getFile();
+      const prior = await findPrevious(oldRecordings, fileHandle, fileName);
+      const stamp = fileStamp(file);
+      const unchanged = prior?.stamp === stamp;
+      project.recordings.push({
+        id:prior?.id || uid(), name:fileName.replace(/\.wav$/i, ''), fileName,
+        handle:fileHandle, stamp, createdAt:file.lastModified, updatedAt:file.lastModified,
+        duration:unchanged ? prior.duration : null,
+        peaks:unchanged ? prior.peaks : null,
+        audioError:unchanged ? prior.audioError : false
+      });
+    }
+    projects.push(project);
+  }
+  if (state.tapesDirHandle !== root) return;
+  // Read preferences after scanning so changes made during filesystem reads survive.
+  const playbackRates = new Map(oldRecordings.map(r => [r.id, r.playbackRate]));
+  for (const project of projects){
+    for (const recording of project.recordings) recording.playbackRate = playbackRates.get(recording.id) || 1;
+  }
+  const signature = JSON.stringify(projects.map(p => [p.id, p.name,
+    p.recordings.map(r => [r.id, r.fileName, r.stamp]).sort((a,b) => a[0].localeCompare(b[0]))
+  ]).sort((a,b) => a[0].localeCompare(b[0])));
+  const changed = signature !== state.folderSignature;
+  const playing = projects.flatMap(p => p.recordings).find(r => r.id === state.player.currentRecordingId);
+  if (state.player.currentRecordingId && (!playing || playing.stamp !== state.player.stamp)) stopPlayback();
+  state.projects = projects;
+  state.folderSignature = signature;
+  state.folderError = '';
+  updateFolderUI();
+  if (!changed) return;
+  if (state.view === 'view-recorder'){
+    updateSaveProjects();
+    return;
+  }
+  if (state.currentProjectId && !currentProject()){
+    state.currentProjectId = null;
+    stopPlayback();
+    showView('view-projects');
+  }
+  renderProjects();
+  if (state.view === 'view-project') renderRecordings();
+}
+
+async function refreshFolder(reportError=false, duringOperation=false){
+  if (!state.tapesDirHandle || (folderOperationActive && !duringOperation)) return;
+  if (scanPromise) return scanPromise;
+  scanPromise = scanFolder().catch(err => {
+    console.warn('Folder refresh failed:', err);
+    state.folderError = 'Folder unavailable. Reopen it to reconnect.';
+    updateFolderUI();
+    if (reportError) throw err;
+  }).finally(() => { scanPromise = null; });
+  return scanPromise;
+}
+
+async function folderOperation(action){
+  if (folderOperationActive) throw new Error('Another folder operation is still running.');
+  folderOperationActive = true;
+  try{
+    if (scanPromise) await scanPromise;
+    await refreshFolder(true, true);
+    return await action();
+  } finally {
+    folderOperationActive = false;
+    await refreshFolder();
+  }
+}
+
+async function getProjectDir(project){
+  if (!project) throw new Error('The project is no longer available.');
+  const path = await state.tapesDirHandle.resolve(project.handle);
+  if (!path || path.length !== 1) throw new Error('The project moved outside this folder or was deleted.');
+  const handle = await state.tapesDirHandle.getDirectoryHandle(path[0]);
+  if (!await sameEntry(handle, project.handle)) throw new Error('The project changed. Refresh and try again.');
+  return handle;
+}
+
+async function getRecordingBlob(project, recording){
+  const dir = await getProjectDir(project);
+  const path = await dir.resolve(recording.handle);
+  if (!path || path.length !== 1) throw new Error('The recording moved or was deleted.');
+  return recording.handle.getFile();
+}
+
+async function writeBlob(fileHandle, blob){
+  const writable = await fileHandle.createWritable();
+  try{
+    await writable.write(blob);
+    await writable.close();
+  } catch (err){
+    try{ await writable.abort(); }catch(e){}
+    throw err;
+  }
+}
+
+async function assertNameAvailable(dir, name){
+  for await (const entryName of dir.keys()){
+    if (entryName.normalize('NFC').toLowerCase() === name.normalize('NFC').toLowerCase()){
+      throw new Error(`"${name}" already exists. Choose a different name.`);
+    }
+  }
+}
+
+async function treeSnapshot(dir, prefix=''){
+  const result = [];
+  for await (const [name, handle] of dir.entries()){
+    const path = prefix + name;
+    if (handle.kind === 'directory'){
+      result.push([path, 'directory']);
+      result.push(...await treeSnapshot(handle, path + '/'));
+    } else {
+      result.push([path, fileStamp(await handle.getFile())]);
+    }
+  }
+  return result.sort((a,b) => a[0].localeCompare(b[0]));
+}
+
+async function copyDirectory(source, target){
+  for await (const [name, handle] of source.entries()){
+    await assertNameAvailable(target, name);
+    if (handle.kind === 'directory'){
+      await copyDirectory(handle, await target.getDirectoryHandle(name, { create:true }));
+    } else {
+      await writeBlob(await target.getFileHandle(name, { create:true }), await handle.getFile());
+    }
+  }
+}
+
+// Directory renames need copy-then-remove in browsers without native move support.
+// Validate both trees before removing the source; failures leave the originals intact.
+async function renameEntry(parent, handle, name){
+  const path = await parent.resolve(handle);
+  if (!path || path.length !== 1) throw new Error('This item moved or was deleted. Refresh and try again.');
+  const oldName = path[0];
+  if (name === oldName) return handle;
+  await assertNameAvailable(parent, name);
+  try{
+    if (handle.kind === 'file'){
+      const source = await handle.getFile();
+      const target = await parent.getFileHandle(name, { create:true });
+      await writeBlob(target, source);
+      if (fileStamp(await handle.getFile()) !== fileStamp(source) || (await target.getFile()).size !== source.size){
+        throw new Error('The file changed during the rename.');
+      }
+      await parent.removeEntry(oldName);
+      return target;
+    }
+    const before = await treeSnapshot(handle);
+    const target = await parent.getDirectoryHandle(name, { create:true });
+    await copyDirectory(handle, target);
+    const after = await treeSnapshot(handle);
+    const copied = await treeSnapshot(target);
+    const sizes = entries => JSON.stringify(entries.map(([path, stamp]) => [path, stamp.split(':')[0]]));
+    if (JSON.stringify(before) !== JSON.stringify(after) || sizes(before) !== sizes(copied)){
+      throw new Error('The project changed during the rename.');
+    }
+    await parent.removeEntry(oldName, { recursive:true });
+    return target;
+  } catch(err){
+    throw new Error(`${err.message} The original was kept; a copy named "${name}" may remain.`);
+  }
+}
+
+async function removeRecordingFile(project, recording){
+  const dir = await getProjectDir(project);
+  await getRecordingBlob(project, recording);
+  const path = await dir.resolve(recording.handle);
+  await dir.removeEntry(path[0]);
+}
+
+async function removeProjectFolder(project){
+  await getProjectDir(project);
+  const path = await state.tapesDirHandle.resolve(project.handle);
+  await state.tapesDirHandle.removeEntry(path[0], { recursive:true });
+}
+
+async function useTapesFolder(dirHandle){
+  if (scanPromise) await scanPromise;
+  stopPlayback();
+  state.tapesDirHandle = dirHandle;
+  state.projects = [];
+  state.currentProjectId = null;
+  state.folderSignature = null;
+  showView('view-projects');
+  await refreshFolder(true);
+  renderProjects();
+  try{ await saveDirectoryHandle(dirHandle); }
+  catch(err){ console.warn('This browser could not remember the folder:', err); }
+}
+
+async function importTapesFolder(){
+  if (folderOperationActive) return;
+  if (!('showDirectoryPicker' in window)){
+    alert('Folder import requires a Chromium-based browser with File System Access support (for example Chrome or Edge).');
+    return;
+  }
+  try{
+    const dirHandle = await window.showDirectoryPicker({ mode:'readwrite', id:'tapes-target' });
+    if (!(await verifyDirectoryPermission(dirHandle, true))){
+      alert('Write access to the selected folder is required.');
+      return;
+    }
+
+    await useTapesFolder(dirHandle);
+  } catch (err){
+    if (err && err.name === 'AbortError') return;
+    console.error(err);
+    alert(`Could not open this Tapes folder. ${err.message || err}`);
+  }
+}
+
+async function restoreStoredTapesFolder(){
+  try{
+    const dirHandle = await loadDirectoryHandle();
+    if (!dirHandle || !(await verifyDirectoryPermission(dirHandle, false))) return;
+    if (!state.tapesDirHandle) await useTapesFolder(dirHandle);
+  } catch (err){
+    console.warn('Could not restore the previous Tapes folder:', err);
+  }
+}
+
+/* ===================== Utilities ===================== */
+function uid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+}
+
+function fmtTime(sec){
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function fmtTimestamp(ts){
+  const d = new Date(ts);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let h = d.getHours();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if (h === 0) h = 12;
+  const min = String(d.getMinutes()).padStart(2,'0');
+  return `${months[d.getMonth()]} ${d.getDate()}, ${h}:${min} ${ampm}`;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ===================== WAV encode ===================== */
+function encodeWAV(samples, sampleRate){
+  const numChannels = 1;
+  const bytesPerSample = 2;
+  const blockAlign = numChannels * bytesPerSample;
+  const dataLength = samples.length * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + dataLength);
+  const view = new DataView(buffer);
+
+  function writeString(offset, str){
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * blockAlign, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bytesPerSample * 8, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataLength, true);
+
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++, offset += 2){
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return new Blob([view], { type: 'audio/wav' });
+}
+
+async function decodeBlobToFloat32(blob){
+  const arrayBuffer = await blob.arrayBuffer();
+  const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
+  try{
+    const audioBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+    return { data:audioBuffer.getChannelData(0).slice(), sampleRate:audioBuffer.sampleRate };
+  } finally { await tempCtx.close(); }
+}
+
+function resample(float32Arr, fromRate, toRate){
+  if (fromRate === toRate) return float32Arr;
+  const ratio = fromRate / toRate;
+  const newLength = Math.round(float32Arr.length / ratio);
+  const result = new Float32Array(newLength);
+  for (let i = 0; i < newLength; i++){
+    const srcIndex = i * ratio;
+    const idx0 = Math.floor(srcIndex);
+    const idx1 = Math.min(idx0 + 1, float32Arr.length - 1);
+    const frac = srcIndex - idx0;
+    result[i] = float32Arr[idx0] * (1 - frac) + float32Arr[idx1] * frac;
+  }
+  return result;
+}
+
+function concatFloat32(a, b){
+  const out = new Float32Array(a.length + b.length);
+  out.set(a, 0);
+  out.set(b, a.length);
+  return out;
+}
+
+function computePeaks(samples, numBuckets){
+  const peaks = new Array(numBuckets).fill(0);
+  const bucketSize = Math.max(1, Math.floor(samples.length / numBuckets));
+  for (let i = 0; i < numBuckets; i++){
+    const start = i * bucketSize;
+    const end = Math.min(samples.length, start + bucketSize);
+    let max = 0;
+    for (let j = start; j < end; j++){
+      const v = Math.abs(samples[j]);
+      if (v > max) max = v;
+    }
+    peaks[i] = max;
+  }
+  return peaks;
+}
+
+/* ===================== App state ===================== */
+const RECORD_SAMPLE_RATE = 44100;
+const NUM_PEAKS = 56;
+const PLAYBACK_SPEEDS = [0.8, 1, 1.25, 1.5, 1.75, 2];
+
+/* Lucide icons (https://lucide.dev), ISC License.
+Copyright (c) 2026 Lucide Icons and Contributors.
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+Feather-derived icons: Copyright (c) 2013-present Cole Bemis, MIT License.
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions: The above copyright notice and this
+permission notice shall be included in all copies or substantial portions of
+the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE. */
+const TOOL_ICONS = {
+  gauge:'<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
+  listPlus:'<path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/>',
+  pencil:'<path d="m16 3 5 5M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+  trash:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
+  micOff:'<path d="m2 2 20 20M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6M5 10v2a7 7 0 0 0 12 5M19 10v2a7 7 0 0 1-.11 1.23M12 19v3M8 22h8"/>'
+};
+function toolIcon(name){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TOOL_ICONS[name]}</svg>`;
+}
+
+let state = {
+  currentProjectId: null,
+  tapesDirHandle: null,
+  projects: null,
+  view: 'view-projects',
+  folderSignature: null,
+  folderError: '',
+  recorder: {
+    active: false,
+    starting: false,
+    startAttempt: 0,
+    paused: false,
+    audioCtx: null,
+    stream: null,
+    source: null,
+    processor: null,
+    silentGain: null,
+    chunks: [],
+    totalSamples: 0,
+    appendTargetId: null, // recording id being appended to, or null for new
+    projectId: null,
+    appendStamp: null,
+    pendingBlob: null,
+    pendingPeaks: null,
+    pendingDuration: 0,
+    timerInterval: null,
+    levelInterval: null
+  },
+  player: {
+    currentRecordingId: null,
+    currentObjectUrl: null,
+    stamp: null
+  }
+};
+
+/* ===================== View switching ===================== */
+function showView(id){
+  state.view = id;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ===================== Modal helper ===================== */
+function openModal(html){
+  if (folderOperationActive) return;
+  document.getElementById('modal-sheet').innerHTML = html;
+  document.getElementById('modal-backdrop').classList.add('active');
+}
+function closeModal(){
+  if (folderOperationActive) return;
+  document.getElementById('modal-backdrop').classList.remove('active');
+  document.getElementById('modal-sheet').innerHTML = '';
+}
+document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-backdrop') closeModal();
+});
+
+function confirmDialog({title, desc, confirmLabel, danger, onConfirm}){
+  openModal(`
+    <div class="modal-title">${escapeHtml(title)}</div>
+    ${desc ? `<div class="modal-desc">${escapeHtml(desc)}</div>` : ''}
+    <div class="panel-row">
+      <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+      <button class="btn ${danger ? 'btn-danger' : 'btn-solid'}" id="modal-confirm">${escapeHtml(confirmLabel)}</button>
+    </div>
+  `);
+  document.getElementById('modal-cancel').onclick = closeModal;
+  document.getElementById('modal-confirm').onclick = () => { closeModal(); onConfirm(); };
+}
+
+/* ===================== Folder / Projects view ===================== */
+function updateFolderUI(){
+  const statusEl = document.getElementById('folder-status');
+  const importBtn = document.getElementById('btn-import-tapes');
+  const importMain = document.getElementById('btn-import-tapes-main');
+  const importWrap = document.getElementById('import-fab-wrap');
+  const newProjectBtn = document.getElementById('btn-new-project');
+  const hasFolder = !!state.tapesDirHandle && !!state.projects;
+  document.getElementById('btn-refresh').disabled = !hasFolder;
+
+  if (hasFolder){
+    statusEl.textContent = `Folder: ${state.tapesDirHandle.name}`;
+    importBtn.textContent = 'Change folder';
+    importWrap.style.display = 'none';
+    newProjectBtn.disabled = false;
+  } else {
+    statusEl.textContent = 'No Tapes folder selected';
+    importBtn.textContent = 'Import Tapes';
+    importWrap.style.display = 'block';
+    newProjectBtn.disabled = true;
+  }
+  if (state.folderError) statusEl.textContent = state.folderError;
+  statusEl.classList.toggle('folder-error', !!state.folderError);
+  if (importMain) importMain.disabled = false;
+}
+
+async function renderProjects(){
+  updateFolderUI();
+  const listEl = document.getElementById('projects-list');
+
+  if (!state.projects){
+    listEl.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h5l2 2h11v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/><path d="M12 11v5M9.5 13.5L12 16l2.5-2.5"/></svg>
+        <div class="t1">Import your Tapes folder</div>
+        <div class="t2">Choose the folder that should hold all projects and WAV recordings. Move that folder with the website to continue on another device.</div>
+      </div>`;
+    return;
+  }
+
+  const modifiedAt = new Map(state.projects.map(project => [project.id,
+    project.recordings.reduce((latest, recording) => Math.max(latest, recording.updatedAt || recording.createdAt || 0), 0)
+  ]));
+  const projects = [...state.projects].sort((a,b) =>
+    modifiedAt.get(b.id) - modifiedAt.get(a.id) || a.name.localeCompare(b.name, undefined, { numeric:true })
+  );
+
+  if (projects.length === 0){
+    listEl.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        <div class="t1">No projects yet</div>
+        <div class="t2">Tap the + button to create your first project and start recording.</div>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = projects.map(p => `
+    <div class="card" data-project-id="${p.id}">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(p.name)}</div>
+        <div class="card-sub">${p.recordings.length} recording${p.recordings.length === 1 ? '' : 's'}</div>
+      </div>
+      <div class="card-actions">
+      <button class="card-trash" data-rename-project="${p.id}" aria-label="Rename project" title="Rename project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5M4 16 16 4a2 2 0 0 1 4 4L8 20l-5 1z"/></svg>
+      </button>
+      <button class="card-trash" data-delete-project="${p.id}" aria-label="Delete project" title="Delete project">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg>
+      </button>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('[data-delete-project]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.getAttribute('data-delete-project');
+      deleteProject(id);
+    });
+  });
+
+  listEl.querySelectorAll('[data-rename-project]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      renameProject(el.dataset.renameProject);
+    });
+  });
+
+  listEl.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => openProject(el.getAttribute('data-project-id')));
+  });
+}
+
+document.getElementById('btn-import-tapes').addEventListener('click', importTapesFolder);
+document.getElementById('btn-import-tapes-main').addEventListener('click', importTapesFolder);
+document.getElementById('btn-refresh').addEventListener('click', () => refreshFolder());
+
+function nameDialog(title, initialName, label, onSave){
+  openModal(`
+    <div class="modal-title">${escapeHtml(title)}</div>
+    <div>
+      <label class="field-label" for="input-item-name">Name</label>
+      <input type="text" class="text-input" id="input-item-name" maxlength="100" autocomplete="off">
+    </div>
+    <div class="field-error" id="name-error" role="alert" hidden></div>
+    <div class="panel-row">
+      <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+      <button class="btn btn-solid" id="modal-save-name">${escapeHtml(label)}</button>
+    </div>
+  `);
+  const input = document.getElementById('input-item-name');
+  input.value = initialName;
+  input.focus();
+  input.select();
+  const save = document.getElementById('modal-save-name');
+  const error = document.getElementById('name-error');
+  document.getElementById('modal-cancel').onclick = closeModal;
+  save.onclick = async () => {
+    save.disabled = true;
+    error.hidden = true;
+    try{
+      const name = validateName(input.value);
+      await folderOperation(() => onSave(name));
+      closeModal();
+    } catch(err){
+      console.error(err);
+      error.textContent = err.message || String(err);
+      error.hidden = false;
+    } finally {
+      save.disabled = false;
+    }
+  };
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !save.disabled) save.click();
+    if (e.key === 'Escape') closeModal();
+  });
+}
+
+document.getElementById('btn-new-project').addEventListener('click', () => {
+  if (!requireTapesFolder()) return;
+  nameDialog('New project', '', 'Create', async name => {
+    await assertNameAvailable(state.tapesDirHandle, name);
+    await state.tapesDirHandle.getDirectoryHandle(name, { create:true });
+  });
+});
+
+function renameProject(id){
+  const project = state.projects?.find(p => p.id === id);
+  if (!project) return;
+  nameDialog('Rename project', project.name, 'Rename', async name => {
+    const current = state.projects.find(p => p.id === id);
+    const dir = await getProjectDir(current);
+    stopPlayback();
+    current.handle = await renameEntry(state.tapesDirHandle, dir, name);
+    current.name = name;
+    for (const recording of current.recordings){
+      recording.handle = await current.handle.getFileHandle(recording.fileName);
+    }
+  });
+}
+
+function renameRecording(id){
+  const recording = currentProject()?.recordings.find(r => r.id === id);
+  if (!recording) return;
+  nameDialog('Rename recording', recording.name, 'Rename', async name => {
+    const project = currentProject();
+    const current = project?.recordings.find(r => r.id === id);
+    if (!current) throw new Error('This recording moved or was deleted.');
+    const dir = await getProjectDir(project);
+    const fileName = name.replace(/\.wav$/i, '') + '.wav';
+    if (state.player.currentRecordingId === id) stopPlayback();
+    current.handle = await renameEntry(dir, current.handle, fileName);
+    current.fileName = fileName;
+    current.name = fileName.replace(/\.wav$/i, '');
+  });
+}
+
+function deleteProject(id){
+  const project = state.projects?.find(p => p.id === id);
+  if (!project) return;
+  confirmDialog({
+    title:`Delete "${project.name}"?`,
+    desc:'This permanently deletes the project folder and everything inside it.',
+    confirmLabel:'Delete', danger:true,
+    onConfirm:async () => {
+      try{
+        await folderOperation(async () => {
+          const current = state.projects.find(p => p.id === id);
+          stopPlayback();
+          await removeProjectFolder(current);
+        });
+      } catch(err){ alert(`Could not delete the project. ${err.message || err}`); }
+    }
+  });
+}
+
+/* ===================== Project (recordings) view ===================== */
+async function openProject(projectId){
+  if (!requireTapesFolder()) return;
+  await refreshFolder();
+  state.currentProjectId = projectId;
+  const project = currentProject();
+  if (!project) return;
+  document.getElementById('project-title').textContent = project.name;
+  showView('view-project');
+  await renderRecordings();
+}
+
+async function renderRecordings(){
+  if (!requireTapesFolder()) return;
+  const listEl = document.getElementById('recordings-list');
+  const project = currentProject();
+  if (!project) return;
+  document.getElementById('project-title').textContent = project.name;
+  const recs = [...project.recordings].sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+  document.getElementById('project-count').textContent = `Recordings (${recs.length})`;
+
+  if (recs.length === 0){
+    listEl.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+        <div class="t1">No recordings yet</div>
+        <div class="t2">Tap "Record new" below to make your first recording in this project.</div>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = recs.map(r => `
+    <div class="card rec-card" data-rec-id="${r.id}">
+      <div class="rec-header">
+        <div class="rec-top" data-play-toggle="${r.id}">
+          <div class="card-icon" data-icon-for="${r.id}">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${escapeHtml(r.name)}</div>
+            <div class="card-sub">${fmtTimestamp(r.createdAt)} · <span data-duration-for="${r.id}">${recordingDuration(r)}</span></div>
+          </div>
+        </div>
+        <div class="rec-tools" role="group" aria-label="Recording actions">
+          <label class="icon-btn speed-control ${r.playbackRate !== 1 ? 'is-adjusted' : ''}" title="Playback speed: ${r.playbackRate}x">
+            ${toolIcon('gauge')}
+            <select class="speed-select" data-speed-for="${r.id}" aria-label="Playback speed" title="Playback speed: ${r.playbackRate}x">
+              ${PLAYBACK_SPEEDS.map(speed => `<option value="${speed}" ${speed === r.playbackRate ? 'selected' : ''}>${speed}x</option>`).join('')}
+            </select>
+          </label>
+          <button class="icon-btn" data-append="${r.id}" aria-label="Append" title="Append recording" ${r.audioError ? 'disabled' : ''}>${toolIcon('listPlus')}</button>
+          <button class="icon-btn" data-rename-rec="${r.id}" aria-label="Rename recording" title="Rename recording">${toolIcon('pencil')}</button>
+          <button class="icon-btn danger" data-delete-rec="${r.id}" aria-label="Delete recording" title="Delete recording">${toolIcon('trash')}</button>
+        </div>
+      </div>
+      <div class="waveform" data-waveform-for="${r.id}"></div>
+      <div class="time-row">
+        <span data-current-for="${r.id}">00:00</span>
+        <span data-duration-for="${r.id}">${recordingDuration(r)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  recs.forEach(r => {
+    const wf = listEl.querySelector(`[data-waveform-for="${r.id}"]`);
+    const peaks = r.peaks && r.peaks.length ? r.peaks : new Array(NUM_PEAKS).fill(0.15);
+    wf.innerHTML = peaks.map(p => `<span class="bar" style="height:${Math.max(8, p * 100)}%"></span>`).join('');
+    wf.addEventListener('click', (e) => onWaveformClick(e, r));
+    loadRecordingMetadata(project, r);
+  });
+
+  const playing = recs.find(r => r.id === state.player.currentRecordingId);
+  if (playing){
+    setPlayIcon(playing.id, !playerEl.paused);
+    updateWaveformProgress(playing.id, playerEl.currentTime, playerEl.duration);
+  }
+
+  listEl.querySelectorAll('[data-play-toggle]').forEach(el => {
+    el.addEventListener('click', () => togglePlay(el.getAttribute('data-play-toggle')));
+  });
+  listEl.querySelectorAll('[data-speed-for]').forEach(el => {
+    el.addEventListener('change', () => {
+      const speed = Number(el.value);
+      const recording = currentProject()?.recordings.find(r => r.id === el.dataset.speedFor);
+      if (!recording || !PLAYBACK_SPEEDS.includes(speed)) return;
+      recording.playbackRate = speed;
+      el.title = `Playback speed: ${speed}x`;
+      el.closest('.speed-control').title = el.title;
+      el.closest('.speed-control').classList.toggle('is-adjusted', speed !== 1);
+      if (state.player.currentRecordingId === recording.id) setPlaybackSpeed(speed);
+    });
+  });
+  listEl.querySelectorAll('[data-append]').forEach(el => {
+    el.addEventListener('click', () => startRecorder(el.getAttribute('data-append')));
+  });
+  listEl.querySelectorAll('[data-rename-rec]').forEach(el => {
+    el.addEventListener('click', () => renameRecording(el.dataset.renameRec));
+  });
+  listEl.querySelectorAll('[data-delete-rec]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.getAttribute('data-delete-rec');
+      const rec = project.recordings.find(r => r.id === id);
+      confirmDialog({
+        title: `Delete "${rec.name}"?`,
+        desc: 'This recording WAV will be permanently removed from the Tapes folder.',
+        confirmLabel: 'Delete',
+        danger: true,
+        onConfirm: async () => {
+          try{
+            if (state.player.currentRecordingId === id) stopPlayback();
+            await folderOperation(async () => {
+              const current = currentProject();
+              const target = current?.recordings.find(r => r.id === id);
+              if (!target) throw new Error('This recording moved or was deleted.');
+              await removeRecordingFile(current, target);
+            });
+          } catch(err){
+            console.error(err);
+            alert(`Could not delete the recording. ${err.message || err}`);
+          }
+        }
+      });
+    });
+  });
+}
+
+document.getElementById('btn-back-to-projects').addEventListener('click', () => {
+  stopPlayback();
+  state.currentProjectId = null;
+  showView('view-projects');
+  renderProjects();
+});
+
+document.getElementById('btn-delete-project').addEventListener('click', async () => {
+  deleteProject(state.currentProjectId);
+});
+document.getElementById('btn-rename-project').addEventListener('click', () => renameProject(state.currentProjectId));
+
+document.getElementById('btn-new-recording').addEventListener('click', () => {
+  if (requireTapesFolder()) startRecorder(null);
+});
+
+const metadataJobs = new Map();
+
+function recordingDuration(recording){
+  return recording.audioError ? 'Unreadable WAV' : recording.duration === null ? '...' : fmtTime(recording.duration);
+}
+
+function paintMetadata(recording){
+  document.querySelectorAll(`[data-duration-for="${recording.id}"]`).forEach(el => {
+    el.textContent = recordingDuration(recording);
+  });
+  const wf = document.querySelector(`[data-waveform-for="${recording.id}"]`);
+  if (wf && recording.peaks){
+    wf.innerHTML = recording.peaks.map(p => `<span class="bar" style="height:${Math.max(8, Math.min(1, p) * 100)}%"></span>`).join('');
+  }
+  const append = document.querySelector(`[data-append="${recording.id}"]`);
+  if (append) append.disabled = recording.audioError;
+  if (state.player.currentRecordingId === recording.id){
+    updateWaveformProgress(recording.id, playerEl.currentTime, playerEl.duration);
+  }
+}
+
+async function loadRecordingMetadata(project, recording){
+  if (recording.duration !== null || recording.audioError) return;
+  const key = recording.id + ':' + recording.stamp;
+  if (metadataJobs.has(key)) return metadataJobs.get(key);
+  const job = (async () => {
+    let metadata;
+    try{
+      const file = await getRecordingBlob(project, recording);
+      const { data, sampleRate } = await decodeBlobToFloat32(file);
+      metadata = { duration:data.length / sampleRate, peaks:computePeaks(data, NUM_PEAKS), audioError:false };
+    } catch(err){ metadata = { duration:null, peaks:null, audioError:true }; }
+    const current = state.projects?.flatMap(p => p.recordings).find(r => r.id === recording.id && r.stamp === recording.stamp);
+    if (current){
+      Object.assign(recording, metadata);
+      Object.assign(current, metadata);
+      paintMetadata(current);
+    }
+  })();
+  metadataJobs.set(key, job);
+  try{ await job; } finally { metadataJobs.delete(key); }
+}
+
+/* ===================== Playback ===================== */
+const playerEl = document.getElementById('player');
+
+function setPlaybackSpeed(speed){
+  playerEl.defaultPlaybackRate = speed;
+  playerEl.playbackRate = speed;
+  playerEl.preservesPitch = true;
+}
+
+function stopPlayback(){
+  playerEl.pause();
+  playerEl.removeAttribute('src');
+  if (state.player.currentObjectUrl){
+    URL.revokeObjectURL(state.player.currentObjectUrl);
+    state.player.currentObjectUrl = null;
+  }
+  if (state.player.currentRecordingId){
+    resetPlayIcon(state.player.currentRecordingId);
+  }
+  state.player.currentRecordingId = null;
+  state.player.stamp = null;
+  playerEl.ontimeupdate = null;
+  playerEl.onended = null;
+}
+
+function resetPlayIcon(id){
+  const icon = document.querySelector(`[data-icon-for="${id}"]`);
+  if (icon) icon.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+}
+
+async function togglePlay(id){
+  await refreshFolder();
+  if (state.player.currentRecordingId === id){
+    if (playerEl.paused) { playerEl.play(); setPlayIcon(id, true); }
+    else { playerEl.pause(); setPlayIcon(id, false); }
+    return;
+  }
+  if (state.player.currentRecordingId) stopPlayback();
+
+  const project = currentProject();
+  const rec = project?.recordings.find(r => r.id === id);
+  if (!project || !rec) return;
+
+  try{
+    const file = await getRecordingBlob(project, rec);
+    const url = URL.createObjectURL(file);
+    state.player.currentObjectUrl = url;
+    playerEl.src = url;
+    state.player.currentRecordingId = id;
+    state.player.stamp = rec.stamp;
+    setPlaybackSpeed(rec.playbackRate);
+    setPlayIcon(id, true);
+    try { await playerEl.play(); } catch(e) { /* needs user gesture; already have one */ }
+
+    playerEl.ontimeupdate = () => updateWaveformProgress(id, playerEl.currentTime, playerEl.duration);
+    playerEl.onended = () => { setPlayIcon(id, false); updateWaveformProgress(id, 0, playerEl.duration); };
+  } catch(err){
+    console.error(err);
+    alert(`Could not play this recording. The WAV file may be missing from the Tapes folder.`);
+  }
+}
+
+function setPlayIcon(id, playing){
+  const icon = document.querySelector(`[data-icon-for="${id}"]`);
+  if (!icon) return;
+  icon.innerHTML = playing
+    ? `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+}
+
+function updateWaveformProgress(id, currentTime, duration){
+  const wf = document.querySelector(`[data-waveform-for="${id}"]`);
+  const timeLabel = document.querySelector(`[data-current-for="${id}"]`);
+  if (timeLabel) timeLabel.textContent = fmtTime(currentTime);
+  if (!wf) return;
+  const bars = wf.querySelectorAll('.bar');
+  const fraction = duration > 0 ? currentTime / duration : 0;
+  const activeCount = Math.floor(fraction * bars.length);
+  bars.forEach((bar, i) => {
+    bar.style.background = i < activeCount ? 'var(--play)' : 'var(--play-track)';
+  });
+}
+
+function onWaveformClick(e, rec){
+  const wf = e.currentTarget;
+  const rect = wf.getBoundingClientRect();
+  const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  if (state.player.currentRecordingId !== rec.id){
+    togglePlay(rec.id).then(() => {
+      if (state.player.currentRecordingId === rec.id && isFinite(playerEl.duration)) playerEl.currentTime = fraction * playerEl.duration;
+    });
+  } else {
+    if (isFinite(playerEl.duration)) playerEl.currentTime = fraction * playerEl.duration;
+    if (playerEl.paused){ playerEl.play(); setPlayIcon(rec.id, true); }
+  }
+}
+
+/* ===================== Recorder ===================== */
+const rec = state.recorder;
+
+function resetRecorderUI(){
+  document.getElementById('btn-start-record').disabled = rec.starting;
+  document.getElementById('timer').textContent = '00:00';
+  document.getElementById('rec-dot').className = 'rec-dot';
+  document.getElementById('rec-state-label').textContent = 'Ready';
+  document.getElementById('transport-idle').style.display = 'flex';
+  document.getElementById('transport-active').style.display = 'none';
+  document.getElementById('panel-save').style.display = 'none';
+  document.getElementById('panel-append').style.display = 'none';
+  document.getElementById('recorder-hint').style.display = 'block';
+  document.getElementById('level-bars').innerHTML = '';
+  document.getElementById('icon-pause').style.display = 'inline';
+  document.getElementById('icon-resume').style.display = 'none';
+}
+
+async function startRecorder(appendTargetId){
+  await refreshFolder();
+  const selectedProject = currentProject();
+  if (!selectedProject) return;
+  stopPlayback();
+  rec.projectId = selectedProject.id;
+  rec.appendTargetId = appendTargetId;
+  rec.pendingRawSamples = null;
+  rec.chunks = [];
+  rec.totalSamples = 0;
+  rec.pendingBlob = null;
+  resetRecorderUI();
+
+  const appendTag = document.getElementById('append-tag');
+  if (appendTargetId){
+    const project = currentProject();
+    const target = project?.recordings.find(r => r.id === appendTargetId);
+    if (!project || !target) { alert('That recording no longer exists.'); return; }
+    await loadRecordingMetadata(project, target);
+    if (target.audioError) { alert('This WAV could not be decoded.'); return; }
+    rec.appendStamp = target.stamp;
+    appendTag.style.display = 'inline-block';
+    appendTag.textContent = `Appending to "${target.name}" (${fmtTime(target.duration)})`;
+    document.getElementById('recorder-title').textContent = 'Append recording';
+  } else {
+    appendTag.style.display = 'none';
+    document.getElementById('recorder-title').textContent = 'New recording';
+  }
+
+  showView('view-recorder');
+}
+
+document.getElementById('btn-cancel-recorder').addEventListener('click', async () => {
+  if (folderOperationActive) return;
+  await cancelRecordingIfActive();
+  await returnToLibrary();
+});
+
+async function ensureMic(){
+  if (rec.stream?.getAudioTracks().some(track => track.readyState === 'live')) return rec.stream;
+  releaseMicrophone();
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: {
+    echoCancellation: true, noiseSuppression: true, autoGainControl: true
+  }});
+  rec.stream = stream;
+  for (const track of stream.getAudioTracks()){
+    track.enabled = false;
+    track.addEventListener('ended', () => {
+      if (rec.stream !== stream) return;
+      updateMicrophoneUI();
+      if (rec.active) document.getElementById('btn-stop-record').click();
+    });
+  }
+  updateMicrophoneUI();
+  return stream;
+}
+
+function muteMicrophone(muted){
+  rec.stream?.getAudioTracks().forEach(track => { track.enabled = !muted; });
+  updateMicrophoneUI();
+}
+
+function releaseMicrophone(){
+  rec.stream?.getTracks().forEach(track => track.stop());
+  rec.stream = null;
+  updateMicrophoneUI();
+}
+
+function updateMicrophoneUI(){
+  const connected = rec.stream?.getAudioTracks().some(track => track.readyState === 'live');
+  document.getElementById('mic-session').hidden = !connected;
+  document.getElementById('mic-session-status').textContent = rec.active
+    ? (rec.paused ? 'Microphone paused (muted)' : 'Microphone recording')
+    : 'Microphone ready (muted)';
+  document.getElementById('btn-release-mic').disabled = rec.active || rec.starting;
+}
+
+document.getElementById('btn-release-mic').innerHTML = toolIcon('micOff');
+document.getElementById('btn-release-mic').addEventListener('click', () => {
+  if (!rec.active && !rec.starting) releaseMicrophone();
+});
+document.getElementById('keep-mic-ready').addEventListener('change', e => {
+  if (!e.target.checked && !rec.active && !rec.starting) releaseMicrophone();
+});
+
+document.getElementById('btn-start-record').addEventListener('click', async () => {
+  if (rec.active || rec.starting) return;
+  const attempt = ++rec.startAttempt;
+  const button = document.getElementById('btn-start-record');
+  rec.starting = true;
+  button.disabled = true;
+  try{
+    rec.stream = await ensureMic();
+    if (attempt !== rec.startAttempt || state.view !== 'view-recorder'){
+      releaseMicrophone();
+      return;
+    }
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    rec.audioCtx = new AudioCtx({ sampleRate: RECORD_SAMPLE_RATE });
+    await rec.audioCtx.resume();
+    if (attempt !== rec.startAttempt || state.view !== 'view-recorder'){
+      await finishCapture(true);
+      return;
+    }
+    rec.actualSampleRate = rec.audioCtx.sampleRate;
+    rec.source = rec.audioCtx.createMediaStreamSource(rec.stream);
+    rec.processor = rec.audioCtx.createScriptProcessor(4096, 1, 1);
+    rec.silentGain = rec.audioCtx.createGain();
+    rec.silentGain.gain.value = 0;
+
+    rec.paused = false;
+    rec.active = true;
+    rec.processor.onaudioprocess = e => {
+      if (!rec.active || rec.paused) return;
+      const input = e.inputBuffer.getChannelData(0);
+      rec.chunks.push(new Float32Array(input));
+      rec.totalSamples += input.length;
+    };
+    rec.source.connect(rec.processor);
+    rec.processor.connect(rec.silentGain);
+    rec.silentGain.connect(rec.audioCtx.destination);
+    muteMicrophone(false);
+
+    document.getElementById('transport-idle').style.display = 'none';
+    document.getElementById('transport-active').style.display = 'flex';
+    document.getElementById('recorder-hint').style.display = 'none';
+    setRecordingIndicator('live');
+    rec.timerInterval = setInterval(() => {
+      const secs = rec.totalSamples / (rec.actualSampleRate || RECORD_SAMPLE_RATE);
+      document.getElementById('timer').textContent = fmtTime(secs);
+    }, 200);
+    startLevelMeter();
+  } catch(err){
+    await finishCapture(true);
+    if (attempt === rec.startAttempt && state.view === 'view-recorder'){
+      resetRecorderUI();
+      alert(`Could not start recording. Check the browser microphone permission and input device, then try again. ${err.message || err}`);
+    }
+  } finally {
+    rec.starting = false;
+    button.disabled = false;
+    updateMicrophoneUI();
+  }
+});
+
+function setRecordingIndicator(mode){
+  const dot = document.getElementById('rec-dot');
+  const label = document.getElementById('rec-state-label');
+  if (mode === 'live'){ dot.className = 'rec-dot live'; label.textContent = 'Recording'; }
+  else if (mode === 'paused'){ dot.className = 'rec-dot paused'; label.textContent = 'Paused'; }
+}
+
+function startLevelMeter(){
+  const levelBarsEl = document.getElementById('level-bars');
+  const barCount = 20;
+  levelBarsEl.innerHTML = Array.from({length: barCount}, () => '<div class="lb"></div>').join('');
+  const bars = levelBarsEl.querySelectorAll('.lb');
+  rec.levelInterval = setInterval(() => {
+    if (!rec.active) return;
+    const recentChunk = rec.chunks[rec.chunks.length - 1];
+    let level = 0;
+    if (recentChunk && !rec.paused){
+      let sum = 0;
+      for (let i = 0; i < recentChunk.length; i += 8) sum += Math.abs(recentChunk[i]);
+      level = Math.min(1, (sum / (recentChunk.length / 8)) * 6);
+    }
+    bars.forEach((b) => {
+      const h = rec.paused ? 4 : Math.max(4, Math.random() * level * 34);
+      b.style.height = h + 'px';
+    });
+  }, 120);
+}
+
+document.getElementById('btn-pause-resume').addEventListener('click', () => {
+  rec.paused = !rec.paused;
+  muteMicrophone(rec.paused);
+  document.getElementById('icon-pause').style.display = rec.paused ? 'none' : 'inline';
+  document.getElementById('icon-resume').style.display = rec.paused ? 'inline' : 'none';
+  setRecordingIndicator(rec.paused ? 'paused' : 'live');
+});
+
+document.getElementById('btn-stop-record').addEventListener('click', async () => {
+  if (!rec.active) return;
+  const attempt = rec.startAttempt;
+  await finishCapture();
+  if (attempt !== rec.startAttempt) return;
+
+  if (rec.totalSamples === 0){
+    alert('No audio was captured. Please try recording again.');
+    resetRecorderUI();
+    showView('view-project');
+    return;
+  }
+
+  const merged = new Float32Array(rec.totalSamples);
+  let offset = 0;
+  for (const chunk of rec.chunks){
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  rec.pendingRawSamples = merged;
+  rec.pendingSampleRate = rec.actualSampleRate || RECORD_SAMPLE_RATE;
+  rec.pendingDuration = merged.length / rec.pendingSampleRate;
+
+  document.getElementById('transport-active').style.display = 'none';
+  setRecordingIndicator('idle');
+  document.getElementById('rec-state-label').textContent = 'Stopped';
+
+  if (rec.appendTargetId){
+    const project = currentProject();
+    const target = project?.recordings.find(r => r.id === rec.appendTargetId);
+    if (!target){
+      alert('The original recording moved or was deleted. Save this take as a new recording.');
+      showNewRecordingSave();
+      return;
+    }
+    document.getElementById('append-panel-title').textContent =
+      `Add ${fmtTime(rec.pendingDuration)} to "${target.name}"? New total: ${fmtTime(target.duration + rec.pendingDuration)}`;
+    document.getElementById('panel-append').style.display = 'flex';
+  } else {
+    showNewRecordingSave();
+  }
+});
+
+async function finishCapture(release=false){
+  rec.active = false;
+  muteMicrophone(true);
+  clearInterval(rec.timerInterval);
+  clearInterval(rec.levelInterval);
+  if (rec.processor) rec.processor.onaudioprocess = null;
+  try{ rec.processor && rec.processor.disconnect(); }catch(e){}
+  try{ rec.source && rec.source.disconnect(); }catch(e){}
+  try{ rec.silentGain && rec.silentGain.disconnect(); }catch(e){}
+  if (release || !document.getElementById('keep-mic-ready').checked) releaseMicrophone();
+  const context = rec.audioCtx;
+  rec.audioCtx = rec.source = rec.processor = rec.silentGain = null;
+  if (context){ try{ await context.close(); }catch(e){} }
+}
+
+async function cancelRecordingIfActive(){
+  rec.startAttempt++;
+  await finishCapture();
+  rec.chunks = [];
+  rec.totalSamples = 0;
+  rec.appendTargetId = null;
+  rec.pendingRawSamples = null;
+}
+
+function defaultRecordingName(){
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `Recording ${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+}
+
+function updateSaveProjects(preferredId){
+  const select = document.getElementById('save-project');
+  const selection = preferredId === undefined ? select.value : preferredId;
+  select.replaceChildren(new Option('Choose project', ''));
+  for (const project of state.projects || []) select.add(new Option(project.name, project.id));
+  select.value = selection || '';
+}
+
+function showNewRecordingSave(){
+  document.getElementById('panel-append').style.display = 'none';
+  document.getElementById('panel-save').style.display = 'flex';
+  document.getElementById('save-project-field').style.display = 'block';
+  updateSaveProjects(rec.projectId);
+  const input = document.getElementById('input-recording-name');
+  input.value = defaultRecordingName();
+  input.focus();
+  input.select();
+}
+
+async function returnToLibrary(){
+  await refreshFolder();
+  if (currentProject()){
+    showView('view-project');
+    renderRecordings();
+  } else {
+    state.currentProjectId = null;
+    showView('view-projects');
+    renderProjects();
+  }
+}
+
+document.getElementById('btn-save-separate').addEventListener('click', showNewRecordingSave);
+document.getElementById('btn-draft-project').addEventListener('click', () => {
+  nameDialog('New project', '', 'Create', async name => {
+    await assertNameAvailable(state.tapesDirHandle, name);
+    await state.tapesDirHandle.getDirectoryHandle(name, { create:true });
+  });
+});
+
+/* ---- Save new recording ---- */
+document.getElementById('btn-discard-new').addEventListener('click', async () => {
+  if (folderOperationActive) return;
+  await cancelRecordingIfActive();
+  resetRecorderUI();
+  await returnToLibrary();
+});
+
+document.getElementById('btn-save-new').addEventListener('click', async () => {
+  if (!requireTapesFolder()) return;
+  if (!rec.pendingRawSamples) return;
+  const button = document.getElementById('btn-save-new');
+  const projectId = document.getElementById('save-project').value;
+  button.disabled = true;
+  try{
+    const name = validateName(document.getElementById('input-recording-name').value);
+    const fileName = name.replace(/\.wav$/i, '') + '.wav';
+    await folderOperation(async () => {
+      const project = state.projects.find(p => p.id === projectId);
+      const dir = await getProjectDir(project);
+      await assertNameAvailable(dir, fileName);
+      const blob = encodeWAV(rec.pendingRawSamples, rec.pendingSampleRate);
+      await writeBlob(await dir.getFileHandle(fileName, { create:true }), blob);
+      state.currentProjectId = project.id;
+    });
+    rec.pendingRawSamples = null;
+    resetRecorderUI();
+    await returnToLibrary();
+  } catch(err){
+    console.error(err);
+    alert(`Could not save the recording to the Tapes folder. ${err.message || err}`);
+  } finally { button.disabled = false; }
+});
+
+/* ---- Save appended recording ---- */
+document.getElementById('btn-discard-append').addEventListener('click', async () => {
+  if (folderOperationActive) return;
+  await cancelRecordingIfActive();
+  resetRecorderUI();
+  await returnToLibrary();
+});
+
+document.getElementById('btn-save-append').addEventListener('click', async () => {
+  if (!requireTapesFolder()) return;
+  if (!rec.pendingRawSamples) return;
+  const button = document.getElementById('btn-save-append');
+  button.disabled = true;
+  try{
+    await folderOperation(async () => {
+      const project = state.projects.find(p => p.id === rec.projectId);
+      const target = project?.recordings.find(r => r.id === rec.appendTargetId);
+      if (!target) throw new Error('The original recording moved or was deleted.');
+      const existingBlob = await getRecordingBlob(project, target);
+      if (fileStamp(existingBlob) !== rec.appendStamp) throw new Error('The original recording was modified since this take started.');
+      const { data:existingSamples, sampleRate:existingRate } = await decodeBlobToFloat32(existingBlob);
+      const merged = concatFloat32(resample(existingSamples, existingRate, rec.pendingSampleRate), rec.pendingRawSamples);
+      const blob = encodeWAV(merged, rec.pendingSampleRate);
+      if (fileStamp(await getRecordingBlob(project, target)) !== rec.appendStamp){
+        throw new Error('The original recording changed during the save.');
+      }
+      await writeBlob(target.handle, blob);
+    });
+    rec.pendingRawSamples = null;
+    resetRecorderUI();
+    await returnToLibrary();
+  } catch(err){
+    console.error(err);
+    alert(`Could not append. ${err.message || err} Your new take is still available to save separately.`);
+    showNewRecordingSave();
+  } finally { button.disabled = false; }
+});
+
+/* ===================== Init ===================== */
+updateFolderUI();
+renderProjects();
+restoreStoredTapesFolder();
+setInterval(() => {
+  if (document.visibilityState === 'visible') refreshFolder();
+}, 3000);
+window.addEventListener('focus', () => refreshFolder());
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshFolder();
+});
+window.addEventListener('beforeunload', event => {
+  if (rec.active || rec.pendingRawSamples || folderOperationActive){
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
+window.addEventListener('pagehide', () => {
+  rec.startAttempt++;
+  finishCapture(true);
+});
+
+})();
+</script>
+</body>
+</html>
