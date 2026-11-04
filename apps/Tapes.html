@@ -86,6 +86,11 @@
   }
   .folder-btn:active{ background:var(--surface-2); }
   .icon-btn svg{ width:18px; height:18px; }
+  .project-topbar{ display:grid; grid-template-columns:38px minmax(0,1fr) auto; }
+  .project-actions{ display:flex; align-items:center; gap:8px; }
+  .icon-btn.record-action{ background:var(--rec); border-color:var(--rec); color:#fff; }
+  .icon-btn.is-active{ color:var(--play); border-color:var(--play); }
+  button:focus-visible{ outline:2px solid var(--play); outline-offset:3px; }
 
   .eyebrow{
     font-family:'IBM Plex Mono', monospace;
@@ -157,11 +162,35 @@
 
   /* ---------- Recording card w/ waveform ---------- */
   .rec-card{ flex-direction:column; align-items:stretch; gap:0; cursor:default; }
-  .rec-header{ display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
-  .rec-top{ display:flex; align-items:center; gap:12px; cursor:pointer; flex:1 1 180px; min-width:0; }
-  .rec-tools{ display:flex; align-items:center; gap:4px; margin-left:auto; }
+  .rec-header{ display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; }
+  .rec-top{ display:flex; align-items:center; gap:12px; cursor:pointer; min-width:0; overflow:hidden; }
+  .rec-tools{ display:flex; align-items:center; gap:4px; justify-self:end; }
   .rec-tools .icon-btn{ width:32px; height:32px; background:var(--surface-2); }
   .rec-tools .icon-btn svg{ width:16px; height:16px; }
+  .merge-panel{ margin:0 20px 16px; padding:16px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); }
+  .merge-panel[hidden], #merge-save-info[hidden]{ display:none; }
+  .merge-heading{ margin:0 0 6px; font-size:15px; font-weight:600; }
+  .merge-hint{ margin:0; font-size:13px; line-height:1.5; color:var(--text-muted); }
+  .merge-sequence{ max-height:132px; overflow-y:auto; padding-left:26px; margin:12px 0; font-size:13px; color:var(--play); }
+  .merge-sequence:empty{ display:none; }
+  .merge-sequence li{ padding:3px 0 3px 4px; }
+  .merge-sequence li span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  .merge-progress{ margin:10px 0; font-size:13px; line-height:1.5; color:var(--text-muted); overflow-wrap:anywhere; }
+  .merge-progress:empty{ display:none; }
+  .merge-panel .field-error{ margin:10px 0; overflow-wrap:anywhere; }
+  .merge-select{
+    display:flex; align-items:center; gap:12px; min-width:0; width:100%; padding:0;
+    border:0; background:transparent; color:var(--text); text-align:left; font:inherit; cursor:pointer;
+  }
+  .merge-order{ width:36px; height:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    border:1px solid var(--border); border-radius:50%; color:var(--text-muted); font:600 14px 'IBM Plex Mono', monospace; }
+  .merge-mode .rec-header{ grid-template-columns:minmax(0,1fr); }
+  .merge-mode .rec-top, .merge-mode .rec-tools{ display:none; }
+  .merge-select .card-title, .merge-select .card-sub{ display:block; }
+  .merge-mode .rec-card.is-selected{ border-color:var(--play); }
+  .merge-mode .is-selected .merge-order{ color:var(--bg); background:var(--play); border-color:var(--play); }
+  .merge-mode .rec-card .waveform, .merge-mode .rec-card .time-row{ display:none; }
+  .merge-save-mode .recorder-stage{ display:none; }
   .speed-control{ position:relative; }
   .speed-control.is-adjusted{ color:var(--play); border-color:var(--play); }
   .speed-select{
@@ -239,6 +268,39 @@
   .btn-stop svg{ width:22px; height:22px; }
 
   .recorder-hint{ font-size:13px; color:var(--text-faint); text-align:center; max-width:260px; }
+  .summary-source{
+    margin:0 20px 8px; padding:16px; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--radius-lg); min-width:0;
+  }
+  .summary-source[hidden], .summary-label[hidden]{ display:none; }
+  .summary-eyebrow, .summary-label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-muted); margin:0 0 12px;
+  }
+  .summary-source-row{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .summary-source .card-icon{ cursor:pointer; }
+  .summary-source .card-title{ margin:0; }
+  .summary-speed{
+    flex-shrink:0; width:66px; border:1px solid var(--border); border-radius:var(--radius-sm);
+    background:var(--surface-2); color:var(--text); padding:8px 4px; font:12px 'Inter', sans-serif;
+    color-scheme:dark;
+  }
+  .summary-seek-wrap{ position:relative; }
+  .summary-seek-wrap .waveform{ pointer-events:none; }
+  .summary-seek{
+    position:absolute; inset:0; margin:0; width:100%; height:100%; opacity:0; cursor:pointer;
+  }
+  .summary-seek-wrap:focus-within{ outline:2px solid var(--play); outline-offset:3px; border-radius:4px; }
+  .summary-status{ min-height:18px; font-size:12px; color:var(--text-muted); margin:10px 0 0; line-height:1.5; }
+  .summary-mode .recorder-stage{ gap:18px; padding-top:12px; }
+  .summary-label{ margin:0; }
+  .field-hint{ margin:7px 0 0; font-size:12px; line-height:1.5; color:var(--text-muted); }
+  @media(max-width:480px){
+    .project-topbar{ grid-template-columns:38px minmax(0,1fr); }
+    .project-actions{ grid-column:1 / -1; justify-content:flex-end; }
+    .rec-header{ grid-template-columns:minmax(0,1fr); }
+    .summary-mode .timer{ font-size:46px; }
+  }
 
   /* ---------- Save / append panel ---------- */
   .panel{
@@ -318,26 +380,37 @@
 
   <!-- ============ PROJECT (RECORDINGS) VIEW ============ -->
   <div class="view" id="view-project">
-    <div class="topbar">
+    <div class="topbar project-topbar">
       <button class="icon-btn" id="btn-back-to-projects" aria-label="Back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <h1 id="project-title">Project</h1>
+      <div class="project-actions" role="group" aria-label="Project actions">
+      <button class="icon-btn record-action" id="btn-new-recording" aria-label="Record new" title="Record new">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-merge-recordings" aria-label="Merge recordings" title="Merge recordings" aria-pressed="false"></button>
       <button class="icon-btn" id="btn-rename-project" aria-label="Rename project" title="Rename project">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5M4 16 16 4a2 2 0 0 1 4 4L8 20l-5 1z"/></svg>
       </button>
       <button class="icon-btn danger" id="btn-delete-project" aria-label="Delete project">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg>
       </button>
+      </div>
     </div>
     <div class="eyebrow" id="project-count">Recordings</div>
+    <section class="merge-panel" id="merge-panel" aria-label="Merge selection" hidden>
+      <h2 class="merge-heading" id="merge-heading">Select recordings to merge</h2>
+      <p class="merge-hint">Select at least two recordings in the order you want to hear them. Selecting again removes one.</p>
+      <ol class="merge-sequence" id="merge-sequence" aria-label="Selected recording order"></ol>
+      <p class="merge-progress" id="merge-progress" role="status"></p>
+      <div class="field-error" id="merge-error" role="alert" hidden></div>
+      <div class="panel-row">
+        <button class="btn btn-ghost" id="btn-cancel-merge">Cancel</button>
+        <button class="btn btn-solid" id="btn-merge-selected" disabled>Merge selected</button>
+      </div>
+    </section>
     <div class="scroll" id="recordings-list"></div>
-    <div class="fab-wrap">
-      <button class="fab rec-fab" id="btn-new-recording">
-        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
-        Record new
-      </button>
-    </div>
   </div>
 
   <!-- ============ RECORDER VIEW ============ -->
@@ -350,7 +423,29 @@
       <div style="width:38px"></div>
     </div>
 
+    <section class="summary-source" id="merge-save-info" aria-label="Merged recording" hidden>
+      <div class="summary-eyebrow">Ready to save</div>
+      <p class="merge-hint" id="merge-save-details"></p>
+      <ol class="merge-sequence" id="merge-save-sequence" aria-label="Merged recording order"></ol>
+    </section>
+
+    <section class="summary-source" id="summary-source" aria-label="Original recording" hidden>
+      <div class="summary-eyebrow">Original recording</div>
+      <div class="summary-source-row">
+        <button class="card-icon" id="btn-summary-play" aria-label="Play original recording" title="Play original recording"></button>
+        <div class="card-body"><div class="card-title" id="summary-source-name"></div></div>
+        <select class="summary-speed" id="summary-speed" aria-label="Original playback speed"></select>
+      </div>
+      <div class="summary-seek-wrap">
+        <div class="waveform" id="summary-waveform" aria-hidden="true"></div>
+        <input class="summary-seek" id="summary-seek" type="range" min="0" max="1000" value="0" aria-label="Seek original recording">
+      </div>
+      <div class="time-row"><span id="summary-current">00:00</span><span id="summary-duration">00:00</span></div>
+      <p class="summary-status" id="summary-status" role="status">Ready to listen</p>
+    </section>
+
     <div class="recorder-stage" id="recorder-stage">
+      <div class="summary-label" id="summary-label" hidden>Your summary</div>
       <div class="append-tag" id="append-tag" style="display:none;"></div>
       <div class="rec-indicator">
         <div class="rec-dot" id="rec-dot"></div>
@@ -383,8 +478,10 @@
     <div class="panel" id="panel-save" style="display:none;">
       <div class="panel-title">Save recording</div>
       <div>
-        <label class="field-label">Name</label>
-        <input type="text" class="text-input" id="input-recording-name" maxlength="80">
+        <label class="field-label" for="input-recording-name">Name</label>
+        <input type="text" class="text-input" id="input-recording-name" maxlength="80" aria-describedby="recording-name-hint recording-name-error">
+        <p class="field-hint" id="recording-name-hint">Up to 80 characters. Long titles are shortened in the list.</p>
+        <div class="field-error" id="recording-name-error" role="alert" hidden></div>
       </div>
       <div id="save-project-field" style="display:none;">
         <label class="field-label" for="save-project">Project</label>
@@ -416,6 +513,7 @@
 </div>
 
 <audio id="player" style="display:none;"></audio>
+<audio id="summary-player" preload="metadata" style="display:none;"></audio>
 
 <script>
 (function(){
@@ -481,16 +579,20 @@ function requireTapesFolder(){
   return true;
 }
 
-function validateName(value){
+function validateName(value, maxLength=100){
   const name = value.trim();
   if (!name) throw new Error('Enter a name.');
-  if (name.length > 100 || /[<>:"/\\|?*\x00-\x1F]/.test(name) || /[. ]$/.test(name) || name.startsWith('.')){
-    throw new Error('Use up to 100 characters, without / \\ : * ? " < > |, a leading dot, or a trailing dot.');
+  if (name.length > maxLength || /[<>:"/\\|?*\x00-\x1F]/.test(name) || /[. ]$/.test(name) || name.startsWith('.')){
+    throw new Error(`Use up to ${maxLength} characters, without / \\ : * ? " < > |, a leading dot, or a trailing dot.`);
   }
   if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(name)){
     throw new Error('That name is reserved by Windows. Choose another name.');
   }
   return name;
+}
+
+function validateRecordingName(value){
+  return validateName(value.trim().replace(/\.wav$/i, ''), 80);
 }
 
 function currentProject(){
@@ -908,7 +1010,9 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE. */
 const TOOL_ICONS = {
   gauge:'<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
-  listPlus:'<path d="M11 12H3M16 6H3M16 18H3M18 9v6M21 12h-6"/>',
+  circlePlus:'<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>',
+  summarise:'<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5M7 10h6M7 15h4"/><path d="M17 1.5c.5 2.1 1.4 3 3.5 3.5-2.1.5-3 1.4-3.5 3.5-.5-2.1-1.4-3-3.5-3.5 2.1-.5 3-1.4 3.5-3.5ZM21.5 8c.3 1.5 1 2.2 2.5 2.5-1.5.3-2.2 1-2.5 2.5-.3-1.5-1-2.2-2.5-2.5 1.5-.3 2.2-1 2.5-2.5Z" fill="currentColor" stroke="none"/>',
+  merge:'<path d="M6 3v4a6 6 0 0 0 6 6M18 3v4a6 6 0 0 1-6 6M12 13v8m-3-3 3 3 3-3"/>',
   pencil:'<path d="m16 3 5 5M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
   trash:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>',
   micOff:'<path d="m2 2 20 20M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V5a3 3 0 0 0-5.94-.6M5 10v2a7 7 0 0 0 12 5M19 10v2a7 7 0 0 1-.11 1.23M12 19v3M8 22h8"/>'
@@ -927,6 +1031,7 @@ let state = {
   recorder: {
     active: false,
     starting: false,
+    stopping: false,
     startAttempt: 0,
     paused: false,
     audioCtx: null,
@@ -938,6 +1043,7 @@ let state = {
     totalSamples: 0,
     appendTargetId: null, // recording id being appended to, or null for new
     projectId: null,
+    mergeProjectId: null,
     appendStamp: null,
     pendingBlob: null,
     pendingPeaks: null,
@@ -951,9 +1057,11 @@ let state = {
     stamp: null
   }
 };
+const merge = { active:false, busy:false, projectId:null, selectedIds:[], attempt:0, progress:'', error:'' };
 
 /* ===================== View switching ===================== */
 function showView(id){
+  if (id !== 'view-project' && merge.active) resetMergeSelection();
   state.view = id;
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -1088,12 +1196,13 @@ document.getElementById('btn-import-tapes').addEventListener('click', importTape
 document.getElementById('btn-import-tapes-main').addEventListener('click', importTapesFolder);
 document.getElementById('btn-refresh').addEventListener('click', () => refreshFolder());
 
-function nameDialog(title, initialName, label, onSave){
+function nameDialog(title, initialName, label, onSave, recordingName=false){
   openModal(`
     <div class="modal-title">${escapeHtml(title)}</div>
     <div>
       <label class="field-label" for="input-item-name">Name</label>
-      <input type="text" class="text-input" id="input-item-name" maxlength="100" autocomplete="off">
+      <input type="text" class="text-input" id="input-item-name" maxlength="${recordingName ? 80 : 100}" autocomplete="off" aria-describedby="name-error${recordingName ? ' rename-name-hint' : ''}">
+      ${recordingName ? '<p class="field-hint" id="rename-name-hint">Up to 80 characters. Long titles are shortened in the list.</p>' : ''}
     </div>
     <div class="field-error" id="name-error" role="alert" hidden></div>
     <div class="panel-row">
@@ -1112,7 +1221,7 @@ function nameDialog(title, initialName, label, onSave){
     save.disabled = true;
     error.hidden = true;
     try{
-      const name = validateName(input.value);
+      const name = recordingName ? validateRecordingName(input.value) : validateName(input.value);
       await folderOperation(() => onSave(name));
       closeModal();
     } catch(err){
@@ -1160,12 +1269,12 @@ function renameRecording(id){
     const current = project?.recordings.find(r => r.id === id);
     if (!current) throw new Error('This recording moved or was deleted.');
     const dir = await getProjectDir(project);
-    const fileName = name.replace(/\.wav$/i, '') + '.wav';
+    const fileName = name + '.wav';
     if (state.player.currentRecordingId === id) stopPlayback();
     current.handle = await renameEntry(dir, current.handle, fileName);
     current.fileName = fileName;
     current.name = fileName.replace(/\.wav$/i, '');
-  });
+  }, true);
 }
 
 function deleteProject(id){
@@ -1194,6 +1303,7 @@ async function openProject(projectId){
   state.currentProjectId = projectId;
   const project = currentProject();
   if (!project) return;
+  if (merge.active && merge.projectId !== project.id) resetMergeSelection();
   document.getElementById('project-title').textContent = project.name;
   showView('view-project');
   await renderRecordings();
@@ -1204,6 +1314,7 @@ async function renderRecordings(){
   const listEl = document.getElementById('recordings-list');
   const project = currentProject();
   if (!project) return;
+  if (merge.active && merge.projectId !== project.id) resetMergeSelection();
   document.getElementById('project-title').textContent = project.name;
   const recs = [...project.recordings].sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
   document.getElementById('project-count').textContent = `Recordings (${recs.length})`;
@@ -1213,20 +1324,26 @@ async function renderRecordings(){
       <div class="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
         <div class="t1">No recordings yet</div>
-        <div class="t2">Tap "Record new" below to make your first recording in this project.</div>
+        <div class="t2">Tap the red Record new button at the top to make your first recording in this project.</div>
       </div>`;
+    updateMergeUI();
     return;
   }
 
   listEl.innerHTML = recs.map(r => `
     <div class="card rec-card" data-rec-id="${r.id}">
       <div class="rec-header">
+        ${merge.active ? `<button class="merge-select" data-merge-select="${r.id}" aria-label="Select ${escapeHtml(r.name)} for merge" aria-pressed="false" ${r.audioError || merge.busy ? 'disabled' : ''}>
+          <span class="merge-order" aria-hidden="true">+</span>
+          <span class="card-body"><span class="card-title" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</span>
+          <span class="card-sub" data-duration-for="${r.id}">${recordingDuration(r)}</span></span>
+        </button>` : ''}
         <div class="rec-top" data-play-toggle="${r.id}">
           <div class="card-icon" data-icon-for="${r.id}">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </div>
           <div class="card-body">
-            <div class="card-title">${escapeHtml(r.name)}</div>
+            <div class="card-title" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
             <div class="card-sub">${fmtTimestamp(r.createdAt)} · <span data-duration-for="${r.id}">${recordingDuration(r)}</span></div>
           </div>
         </div>
@@ -1237,7 +1354,8 @@ async function renderRecordings(){
               ${PLAYBACK_SPEEDS.map(speed => `<option value="${speed}" ${speed === r.playbackRate ? 'selected' : ''}>${speed}x</option>`).join('')}
             </select>
           </label>
-          <button class="icon-btn" data-append="${r.id}" aria-label="Append" title="Append recording" ${r.audioError ? 'disabled' : ''}>${toolIcon('listPlus')}</button>
+          <button class="icon-btn" data-summarise="${r.id}" aria-label="Summarise recording" title="Summarise recording" ${r.audioError ? 'disabled' : ''}>${toolIcon('summarise')}</button>
+          <button class="icon-btn" data-append="${r.id}" aria-label="Append" title="Append recording" ${r.audioError ? 'disabled' : ''}>${toolIcon('circlePlus')}</button>
           <button class="icon-btn" data-rename-rec="${r.id}" aria-label="Rename recording" title="Rename recording">${toolIcon('pencil')}</button>
           <button class="icon-btn danger" data-delete-rec="${r.id}" aria-label="Delete recording" title="Delete recording">${toolIcon('trash')}</button>
         </div>
@@ -1254,7 +1372,7 @@ async function renderRecordings(){
     const wf = listEl.querySelector(`[data-waveform-for="${r.id}"]`);
     const peaks = r.peaks && r.peaks.length ? r.peaks : new Array(NUM_PEAKS).fill(0.15);
     wf.innerHTML = peaks.map(p => `<span class="bar" style="height:${Math.max(8, p * 100)}%"></span>`).join('');
-    wf.addEventListener('click', (e) => onWaveformClick(e, r));
+    if (!merge.active) wf.addEventListener('click', (e) => onWaveformClick(e, r));
     loadRecordingMetadata(project, r);
   });
 
@@ -1262,6 +1380,14 @@ async function renderRecordings(){
   if (playing){
     setPlayIcon(playing.id, !playerEl.paused);
     updateWaveformProgress(playing.id, playerEl.currentTime, playerEl.duration);
+  }
+
+  updateMergeUI();
+  if (merge.active){
+    listEl.querySelectorAll('[data-rec-id]').forEach(card => {
+      card.addEventListener('click', () => toggleMergeSelection(card.dataset.recId));
+    });
+    return;
   }
 
   listEl.querySelectorAll('[data-play-toggle]').forEach(el => {
@@ -1281,6 +1407,9 @@ async function renderRecordings(){
   });
   listEl.querySelectorAll('[data-append]').forEach(el => {
     el.addEventListener('click', () => startRecorder(el.getAttribute('data-append')));
+  });
+  listEl.querySelectorAll('[data-summarise]').forEach(el => {
+    el.addEventListener('click', () => startRecorder(null, el.dataset.summarise));
   });
   listEl.querySelectorAll('[data-rename-rec]').forEach(el => {
     el.addEventListener('click', () => renameRecording(el.dataset.renameRec));
@@ -1312,6 +1441,168 @@ async function renderRecordings(){
     });
   });
 }
+
+/* ===================== Merge recordings ===================== */
+function resetMergeSelection(){
+  merge.attempt++;
+  merge.active = merge.busy = false;
+  merge.projectId = null;
+  merge.selectedIds = [];
+  merge.progress = merge.error = '';
+  updateMergeUI();
+}
+
+function updateMergeUI(){
+  const project = currentProject();
+  const recordings = project?.recordings || [];
+  if (merge.active && !merge.busy){
+    const available = merge.selectedIds.filter(id => recordings.some(r => r.id === id && !r.audioError));
+    if (available.length !== merge.selectedIds.length){
+      merge.error = 'Some selected recordings are no longer available. Check the order before merging.';
+      merge.selectedIds = available;
+    }
+  }
+  document.getElementById('view-project').classList.toggle('merge-mode', merge.active);
+  document.getElementById('merge-panel').hidden = !merge.active;
+  for (const id of ['btn-new-recording', 'btn-rename-project', 'btn-delete-project']){
+    document.getElementById(id).disabled = merge.active;
+  }
+  const button = document.getElementById('btn-merge-recordings');
+  button.disabled = merge.busy || (!merge.active && recordings.filter(r => !r.audioError).length < 2);
+  button.classList.toggle('is-active', merge.active);
+  button.setAttribute('aria-pressed', String(merge.active));
+  const count = merge.selectedIds.length;
+  document.getElementById('merge-heading').textContent = count ? `${count} selected · merge in this order` : 'Select recordings to merge';
+  document.getElementById('merge-sequence').innerHTML = merge.selectedIds.map(id => {
+    const name = recordings.find(r => r.id === id)?.name || 'Recording unavailable';
+    return `<li><span title="${escapeHtml(name)}">${escapeHtml(name)}</span></li>`;
+  }).join('');
+  document.getElementById('merge-progress').textContent = merge.progress;
+  const error = document.getElementById('merge-error');
+  error.hidden = !merge.error;
+  error.textContent = merge.error;
+  const submit = document.getElementById('btn-merge-selected');
+  submit.disabled = count < 2 || merge.busy;
+  submit.textContent = merge.busy ? 'Merging…' : count ? `Merge ${count} recordings` : 'Merge selected';
+  document.getElementById('recordings-list').setAttribute('aria-busy', String(merge.busy));
+  document.querySelectorAll('[data-merge-select]').forEach(select => {
+    const id = select.dataset.mergeSelect;
+    const recording = recordings.find(r => r.id === id);
+    const order = merge.selectedIds.indexOf(id);
+    select.disabled = merge.busy || !recording || recording.audioError;
+    select.setAttribute('aria-pressed', String(order >= 0));
+    select.setAttribute('aria-label', order >= 0 ? `Deselect ${recording?.name}, position ${order + 1}` : `Select ${recording?.name} for merge`);
+    select.querySelector('.merge-order').textContent = order >= 0 ? order + 1 : '+';
+    select.closest('.rec-card').classList.toggle('is-selected', order >= 0);
+  });
+}
+
+function toggleMergeSelection(id){
+  if (!merge.active || merge.busy) return;
+  const recording = currentProject()?.recordings.find(r => r.id === id);
+  if (!recording || recording.audioError) return;
+  const index = merge.selectedIds.indexOf(id);
+  if (index >= 0) merge.selectedIds.splice(index, 1);
+  else merge.selectedIds.push(id);
+  merge.error = '';
+  updateMergeUI();
+}
+
+document.getElementById('btn-merge-recordings').innerHTML = toolIcon('merge');
+document.getElementById('btn-merge-recordings').addEventListener('click', () => {
+  if (!requireTapesFolder() || merge.busy) return;
+  if (merge.active) resetMergeSelection();
+  else {
+    merge.active = true;
+    merge.projectId = currentProject()?.id;
+    stopPlayback();
+  }
+  renderRecordings();
+});
+document.getElementById('btn-cancel-merge').addEventListener('click', () => {
+  resetMergeSelection();
+  renderRecordings();
+});
+
+document.getElementById('btn-merge-selected').addEventListener('click', async () => {
+  if (!merge.active || merge.busy || merge.selectedIds.length < 2) return;
+  const attempt = ++merge.attempt;
+  const projectId = merge.projectId;
+  const ids = [...merge.selectedIds];
+  merge.busy = true;
+  merge.error = '';
+  merge.progress = 'Checking selected recordings…';
+  updateMergeUI();
+  const isCurrent = () => merge.active && attempt === merge.attempt && state.currentProjectId === projectId;
+  try{
+    await refreshFolder(true);
+    if (!isCurrent()) return;
+    const project = currentProject();
+    const sources = ids.map(id => project?.recordings.find(r => r.id === id));
+    if (sources.some(source => !source || source.audioError)) throw new Error('A selected recording is unavailable. Check the selection and try again.');
+    const segments = [];
+    let total = 0;
+    for (const [index, source] of sources.entries()){
+      merge.progress = `Preparing ${index + 1} of ${sources.length}: ${source.name}`;
+      updateMergeUI();
+      const blob = await getRecordingBlob(project, source);
+      if (!isCurrent()) return;
+      if (fileStamp(blob) !== source.stamp) throw new Error(`"${source.name}" changed. Check the selection and try again.`);
+      const decoded = await decodeBlobToFloat32(blob);
+      if (!isCurrent()) return;
+      const samples = resample(decoded.data, decoded.sampleRate, RECORD_SAMPLE_RATE);
+      if (!samples.length) throw new Error(`"${source.name}" contains no audio.`);
+      total += samples.length;
+      if (total * 2 > 0xFFFFFFFF - 36) throw new Error('The merged WAV would be too large. Select fewer recordings.');
+      segments.push(samples);
+      // Let Cancel and the progress label respond between recordings.
+      await new Promise(resolve => setTimeout(resolve, 0));
+      if (!isCurrent()) return;
+    }
+    for (const source of sources){
+      const blob = await getRecordingBlob(project, source);
+      if (!isCurrent()) return;
+      if (fileStamp(blob) !== source.stamp) throw new Error(`"${source.name}" changed during merging. Please try again.`);
+    }
+    merge.progress = 'Joining selected recordings…';
+    updateMergeUI();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (!isCurrent()) return;
+    const combined = new Float32Array(total);
+    let offset = 0;
+    for (const samples of segments){ combined.set(samples, offset); offset += samples.length; }
+    const names = sources.map(source => source.name);
+    rec.projectId = rec.mergeProjectId = projectId;
+    rec.appendTargetId = null;
+    rec.chunks = [];
+    rec.totalSamples = 0;
+    rec.pendingRawSamples = combined;
+    rec.pendingSampleRate = RECORD_SAMPLE_RATE;
+    rec.pendingDuration = total / RECORD_SAMPLE_RATE;
+    closeSummaryPlayer();
+    resetRecorderUI();
+    showView('view-recorder');
+    document.getElementById('view-recorder').classList.add('merge-save-mode');
+    document.getElementById('merge-save-info').hidden = false;
+    document.getElementById('merge-save-details').textContent = `${names.length} recordings · ${fmtTime(rec.pendingDuration)} · ${project.name}`;
+    document.getElementById('merge-save-sequence').innerHTML = names.map(name => `<li><span title="${escapeHtml(name)}">${escapeHtml(name)}</span></li>`).join('');
+    document.getElementById('recorder-title').textContent = 'Save merged recording';
+    showNewRecordingSave();
+  } catch(err){
+    if (isCurrent()){
+      console.error('Could not merge recordings:', err);
+      merge.error = err instanceof RangeError ? 'Not enough memory to merge these recordings. Select fewer recordings and try again.'
+        : err.name === 'NotReadableError' ? 'A selected recording changed or could not be read. Check the selection and try again.'
+        : `Could not merge. ${err.message || err}`;
+    }
+  } finally {
+    if (isCurrent()){
+      merge.busy = false;
+      merge.progress = '';
+      updateMergeUI();
+    }
+  }
+});
 
 document.getElementById('btn-back-to-projects').addEventListener('click', () => {
   stopPlayback();
@@ -1346,6 +1637,9 @@ function paintMetadata(recording){
   }
   const append = document.querySelector(`[data-append="${recording.id}"]`);
   if (append) append.disabled = recording.audioError;
+  const summarise = document.querySelector(`[data-summarise="${recording.id}"]`);
+  if (summarise) summarise.disabled = recording.audioError;
+  updateMergeUI();
   if (state.player.currentRecordingId === recording.id){
     updateWaveformProgress(recording.id, playerEl.currentTime, playerEl.duration);
   }
@@ -1500,6 +1794,137 @@ function onWaveformClick(e, rec){
 
 /* ===================== Recorder ===================== */
 const rec = state.recorder;
+const summaryPlayer = document.getElementById('summary-player');
+const summary = { sourceId:null, session:0, playRequest:0, objectUrl:null, duration:0, loading:false, finished:false, error:'' };
+
+function updateSummaryPlayer(){
+  if (!summary.sourceId) return;
+  const duration = Number.isFinite(summaryPlayer.duration) ? summaryPlayer.duration : summary.duration;
+  const current = summaryPlayer.currentTime || 0;
+  const fraction = duration > 0 ? current / duration : 0;
+  const playing = !summaryPlayer.paused && !summaryPlayer.ended;
+  const play = document.getElementById('btn-summary-play');
+  play.innerHTML = playing
+    ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  play.setAttribute('aria-label', playing ? 'Pause original recording' : 'Play original recording');
+  play.title = play.getAttribute('aria-label');
+  const disabled = summary.loading || summary.finished || rec.starting || rec.stopping;
+  play.disabled = disabled;
+  document.getElementById('summary-speed').disabled = disabled;
+  const seek = document.getElementById('summary-seek');
+  seek.disabled = disabled || !(duration > 0);
+  seek.value = Math.round(fraction * 1000);
+  seek.setAttribute('aria-valuetext', `${fmtTime(current)} of ${fmtTime(duration)}`);
+  document.getElementById('summary-current').textContent = fmtTime(current);
+  document.getElementById('summary-duration').textContent = fmtTime(duration);
+  const bars = document.querySelectorAll('#summary-waveform .bar');
+  bars.forEach((bar, i) => { bar.style.background = i < Math.floor(fraction * bars.length) ? 'var(--play)' : 'var(--play-track)'; });
+  const status = summary.error || (summary.loading ? 'Opening original recording…'
+    : summary.finished ? 'Original paused. Name and save your summary below.'
+    : playing ? 'Listening · your recorder is paused'
+    : rec.active && !rec.paused ? 'Narrating · the original is paused'
+    : summaryPlayer.ended ? 'Original finished · you can continue your summary'
+    : 'Ready to listen · play and record take turns');
+  const label = document.getElementById('summary-status');
+  if (label.textContent !== status) label.textContent = status;
+}
+
+function pauseSummaryPlayback(){
+  summary.playRequest++;
+  summaryPlayer.pause();
+  updateSummaryPlayer();
+}
+
+function closeSummaryPlayer(){
+  summary.session++;
+  pauseSummaryPlayback();
+  summary.sourceId = null;
+  summaryPlayer.removeAttribute('src');
+  summaryPlayer.load();
+  if (summary.objectUrl) URL.revokeObjectURL(summary.objectUrl);
+  summary.objectUrl = null;
+  summary.loading = false;
+  summary.finished = false;
+  summary.error = '';
+  document.getElementById('summary-source').hidden = true;
+  document.getElementById('summary-label').hidden = true;
+  document.getElementById('view-recorder').classList.remove('summary-mode');
+}
+
+async function openSummaryPlayer(project, recording){
+  const session = ++summary.session;
+  summary.sourceId = recording.id;
+  summary.duration = recording.duration || 0;
+  summary.loading = true;
+  document.getElementById('summary-source').hidden = false;
+  document.getElementById('summary-label').hidden = false;
+  document.getElementById('view-recorder').classList.add('summary-mode');
+  const name = document.getElementById('summary-source-name');
+  name.textContent = recording.name;
+  name.title = recording.name;
+  const speed = document.getElementById('summary-speed');
+  speed.replaceChildren(...PLAYBACK_SPEEDS.map(rate => new Option(`${rate}x`, rate)));
+  speed.value = recording.playbackRate || 1;
+  const peaks = recording.peaks?.length ? recording.peaks : new Array(NUM_PEAKS).fill(0.15);
+  document.getElementById('summary-waveform').innerHTML = peaks.map(p => `<span class="bar" style="height:${Math.max(8, Math.min(1, p) * 100)}%"></span>`).join('');
+  updateSummaryPlayer();
+  try{
+    const file = await getRecordingBlob(project, recording);
+    if (session !== summary.session) return;
+    summary.objectUrl = URL.createObjectURL(file);
+    summaryPlayer.src = summary.objectUrl;
+    summaryPlayer.defaultPlaybackRate = Number(speed.value);
+    summaryPlayer.playbackRate = Number(speed.value);
+    summaryPlayer.preservesPitch = true;
+  } catch(err){
+    if (session === summary.session) summary.error = `Could not open the original. ${audioErrorDetails(err)}`;
+  } finally {
+    if (session === summary.session){ summary.loading = false; updateSummaryPlayer(); }
+  }
+}
+
+document.getElementById('btn-summary-play').addEventListener('click', async () => {
+  if (!summary.sourceId || summary.loading || summary.finished || rec.starting || rec.stopping) return;
+  if (!summaryPlayer.paused){ pauseSummaryPlayback(); return; }
+  if (!summary.objectUrl) return;
+  if (rec.active) setRecorderPaused(true);
+  const request = ++summary.playRequest;
+  const session = summary.session;
+  summary.error = '';
+  try{
+    await summaryPlayer.play();
+    if (session !== summary.session) return;
+    if (request !== summary.playRequest || rec.starting || (rec.active && !rec.paused) || summary.finished) summaryPlayer.pause();
+  } catch(err){
+    if (session === summary.session && request === summary.playRequest && err.name !== 'AbortError'){
+      summary.error = `Could not play the original. ${audioErrorDetails(err)}`;
+    }
+  }
+  updateSummaryPlayer();
+});
+
+document.getElementById('summary-speed').addEventListener('change', e => {
+  const rate = Number(e.target.value);
+  if (!PLAYBACK_SPEEDS.includes(rate)) return;
+  summaryPlayer.defaultPlaybackRate = rate;
+  summaryPlayer.playbackRate = rate;
+  const source = state.projects?.flatMap(p => p.recordings).find(r => r.id === summary.sourceId);
+  if (source) source.playbackRate = rate;
+});
+document.getElementById('summary-seek').addEventListener('input', e => {
+  if (summary.finished || summary.loading || rec.starting || rec.stopping) return;
+  if (Number.isFinite(summaryPlayer.duration)) summaryPlayer.currentTime = Number(e.target.value) / 1000 * summaryPlayer.duration;
+  updateSummaryPlayer();
+});
+for (const event of ['loadedmetadata', 'timeupdate', 'durationchange', 'play', 'pause', 'ended']){
+  summaryPlayer.addEventListener(event, updateSummaryPlayer);
+}
+summaryPlayer.addEventListener('error', () => {
+  if (!summary.sourceId || !summaryPlayer.error) return;
+  summary.error = 'The original could not be played. You can still record and save your summary.';
+  updateSummaryPlayer();
+});
 
 function resetRecorderUI(){
   document.getElementById('btn-start-record').disabled = rec.starting;
@@ -1514,18 +1939,26 @@ function resetRecorderUI(){
   document.getElementById('level-bars').innerHTML = '';
   document.getElementById('icon-pause').style.display = 'inline';
   document.getElementById('icon-resume').style.display = 'none';
+  document.getElementById('btn-pause-resume').setAttribute('aria-label', 'Pause recording');
+  document.getElementById('btn-pause-resume').classList.remove('btn-resume');
+  document.getElementById('recording-name-error').hidden = true;
+  document.getElementById('input-recording-name').removeAttribute('aria-invalid');
 }
 
-async function startRecorder(appendTargetId){
+async function startRecorder(appendTargetId, summarySourceId=null){
   await refreshFolder();
   const selectedProject = currentProject();
   if (!selectedProject) return;
   stopPlayback();
+  closeSummaryPlayer();
+  resetMergeSaveView();
   rec.projectId = selectedProject.id;
   rec.appendTargetId = appendTargetId;
   rec.pendingRawSamples = null;
   rec.chunks = [];
   rec.totalSamples = 0;
+  rec.paused = false;
+  rec.stopping = false;
   rec.pendingBlob = null;
   resetRecorderUI();
 
@@ -1542,10 +1975,20 @@ async function startRecorder(appendTargetId){
     document.getElementById('recorder-title').textContent = 'Append recording';
   } else {
     appendTag.style.display = 'none';
-    document.getElementById('recorder-title').textContent = 'New recording';
+    document.getElementById('recorder-title').textContent = summarySourceId ? 'Summarise recording' : 'New recording';
   }
 
+  document.getElementById('recorder-hint').textContent = summarySourceId
+    ? 'Listen to a little of the original, then record the gist. Playing pauses recording; recording pauses playback.'
+    : 'Tap the button to start recording. Keep the app open while recording.';
+  const source = selectedProject.recordings.find(r => r.id === summarySourceId);
+  if (summarySourceId){
+    if (!source) { alert('That recording no longer exists.'); return; }
+    await loadRecordingMetadata(selectedProject, source);
+    if (source.audioError) { alert('This WAV could not be decoded.'); return; }
+  }
   showView('view-recorder');
+  if (source) await openSummaryPlayer(selectedProject, source);
 }
 
 document.getElementById('btn-cancel-recorder').addEventListener('click', async () => {
@@ -1602,11 +2045,13 @@ document.getElementById('keep-mic-ready').addEventListener('change', e => {
 });
 
 document.getElementById('btn-start-record').addEventListener('click', async () => {
-  if (rec.active || rec.starting) return;
+  if (rec.active || rec.starting || rec.stopping || rec.pendingRawSamples) return;
+  pauseSummaryPlayback();
   const attempt = ++rec.startAttempt;
   const button = document.getElementById('btn-start-record');
   rec.starting = true;
   button.disabled = true;
+  updateSummaryPlayer();
   try{
     rec.stream = await ensureMic();
     if (attempt !== rec.startAttempt || state.view !== 'view-recorder'){
@@ -1658,6 +2103,7 @@ document.getElementById('btn-start-record').addEventListener('click', async () =
     rec.starting = false;
     button.disabled = false;
     updateMicrophoneUI();
+    updateSummaryPlayer();
   }
 });
 
@@ -1666,6 +2112,7 @@ function setRecordingIndicator(mode){
   const label = document.getElementById('rec-state-label');
   if (mode === 'live'){ dot.className = 'rec-dot live'; label.textContent = 'Recording'; }
   else if (mode === 'paused'){ dot.className = 'rec-dot paused'; label.textContent = 'Paused'; }
+  else { dot.className = 'rec-dot'; label.textContent = 'Stopped'; }
 }
 
 function startLevelMeter(){
@@ -1689,24 +2136,38 @@ function startLevelMeter(){
   }, 120);
 }
 
-document.getElementById('btn-pause-resume').addEventListener('click', () => {
-  rec.paused = !rec.paused;
+function setRecorderPaused(paused){
+  if (!rec.active || rec.stopping) return;
+  if (!paused) pauseSummaryPlayback();
+  rec.paused = paused;
   muteMicrophone(rec.paused);
   document.getElementById('icon-pause').style.display = rec.paused ? 'none' : 'inline';
   document.getElementById('icon-resume').style.display = rec.paused ? 'inline' : 'none';
+  document.getElementById('btn-pause-resume').setAttribute('aria-label', rec.paused ? 'Resume recording' : 'Pause recording');
+  document.getElementById('btn-pause-resume').classList.toggle('btn-resume', rec.paused);
   setRecordingIndicator(rec.paused ? 'paused' : 'live');
+  updateSummaryPlayer();
+}
+
+document.getElementById('btn-pause-resume').addEventListener('click', () => {
+  setRecorderPaused(!rec.paused);
 });
 
 document.getElementById('btn-stop-record').addEventListener('click', async () => {
-  if (!rec.active) return;
+  if (!rec.active || rec.stopping) return;
+  rec.stopping = true;
+  summary.finished = !!summary.sourceId;
+  pauseSummaryPlayback();
   const attempt = rec.startAttempt;
   await finishCapture();
+  rec.stopping = false;
   if (attempt !== rec.startAttempt) return;
 
   if (rec.totalSamples === 0){
     alert('No audio was captured. Please try recording again.');
+    summary.finished = false;
     resetRecorderUI();
-    showView('view-project');
+    updateSummaryPlayer();
     return;
   }
 
@@ -1758,6 +2219,7 @@ async function finishCapture(release=false){
 
 async function cancelRecordingIfActive(){
   rec.startAttempt++;
+  pauseSummaryPlayback();
   await finishCapture();
   rec.chunks = [];
   rec.totalSamples = 0;
@@ -1782,7 +2244,7 @@ function updateSaveProjects(preferredId){
 function showNewRecordingSave(){
   document.getElementById('panel-append').style.display = 'none';
   document.getElementById('panel-save').style.display = 'flex';
-  document.getElementById('save-project-field').style.display = 'block';
+  document.getElementById('save-project-field').style.display = rec.mergeProjectId ? 'none' : 'block';
   updateSaveProjects(rec.projectId);
   const input = document.getElementById('input-recording-name');
   input.value = defaultRecordingName();
@@ -1790,7 +2252,15 @@ function showNewRecordingSave(){
   input.select();
 }
 
+function resetMergeSaveView(){
+  rec.mergeProjectId = null;
+  document.getElementById('merge-save-info').hidden = true;
+  document.getElementById('view-recorder').classList.remove('merge-save-mode');
+}
+
 async function returnToLibrary(){
+  closeSummaryPlayer();
+  resetMergeSaveView();
   await refreshFolder();
   if (currentProject()){
     showView('view-project');
@@ -1822,11 +2292,13 @@ document.getElementById('btn-save-new').addEventListener('click', async () => {
   if (!requireTapesFolder()) return;
   if (!rec.pendingRawSamples) return;
   const button = document.getElementById('btn-save-new');
-  const projectId = document.getElementById('save-project').value;
+  const projectId = rec.mergeProjectId || document.getElementById('save-project').value;
   button.disabled = true;
+  const error = document.getElementById('recording-name-error');
+  error.hidden = true;
   try{
-    const name = validateName(document.getElementById('input-recording-name').value);
-    const fileName = name.replace(/\.wav$/i, '') + '.wav';
+    const name = validateRecordingName(document.getElementById('input-recording-name').value);
+    const fileName = name + '.wav';
     await folderOperation(async () => {
       const project = state.projects.find(p => p.id === projectId);
       const dir = await getProjectDir(project);
@@ -1840,8 +2312,15 @@ document.getElementById('btn-save-new').addEventListener('click', async () => {
     await returnToLibrary();
   } catch(err){
     console.error(err);
-    alert(`Could not save the recording to the Tapes folder. ${err.message || err}`);
+    error.textContent = `Could not save. ${err.message || err}`;
+    error.hidden = false;
+    document.getElementById('input-recording-name').setAttribute('aria-invalid', 'true');
   } finally { button.disabled = false; }
+});
+
+document.getElementById('input-recording-name').addEventListener('input', e => {
+  document.getElementById('recording-name-error').hidden = true;
+  e.target.removeAttribute('aria-invalid');
 });
 
 /* ---- Save appended recording ---- */
@@ -1901,6 +2380,7 @@ window.addEventListener('beforeunload', event => {
 });
 window.addEventListener('pagehide', () => {
   rec.startAttempt++;
+  closeSummaryPlayer();
   finishCapture(true);
 });
 

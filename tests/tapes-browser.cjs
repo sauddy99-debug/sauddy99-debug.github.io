@@ -11,7 +11,8 @@ assert.ok(source.includes(marker));
 const html = source.replace(marker, `globalThis.TapesTest = {
   getChildEntry, getProjectDir, getRecordingBlob, renameEntry,
   removeRecordingFile, removeProjectFolder, loadRecordingMetadata,
-  resumePlayback, encodeWAV, state, playerEl
+  resumePlayback, encodeWAV, state, playerEl, useTapesFolder, startRecorder,
+  closeSummaryPlayer, summary, rec, validateRecordingName
 };\n${marker}`);
 
 (async () => {
@@ -116,6 +117,69 @@ const html = source.replace(marker, `globalThis.TapesTest = {
       return results;
     });
     results.forEach(result => console.log('PASS:', result));
+    await page.evaluate(async () => {
+      const T = TapesTest;
+      const root = await navigator.storage.getDirectory();
+      const folder = await root.getDirectoryHandle('merge-fixture', {create: true});
+      const project = await folder.getDirectoryHandle('Merge project', {create: true});
+      for (const [name, value] of [['First.wav', .2], ['Second.wav', .6]]) {
+        const file = await project.getFileHandle(name, {create: true});
+        const stream = await file.createWritable();
+        await stream.write(T.encodeWAV(new Float32Array(8000).fill(value), 8000));
+        await stream.close();
+      }
+      T.state.player.currentRecordingId = null;
+      await T.useTapesFolder(folder);
+      window.fixtureFolder = folder;
+    });
+    await page.locator('[data-project-id]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-duration-for]')].every(e => e.textContent === '00:01'));
+    await page.locator('#btn-merge-recordings').click();
+    // Select in reverse filename order to verify that merge follows selection order.
+    const selections = page.locator('[data-merge-select]');
+    await selections.filter({hasText: 'Second'}).click();
+    await selections.filter({hasText: 'First'}).click();
+    await page.locator('#btn-merge-selected').click();
+    await page.waitForFunction(() => document.querySelector('#recorder-title').textContent === 'Save merged recording');
+    assert.equal(await page.evaluate(() => TapesTest.rec.pendingDuration), 2);
+    assert.equal(await page.evaluate(() => Math.round(TapesTest.rec.pendingRawSamples[0] * 10)), 6);
+    assert.equal(await page.evaluate(() => Math.round(TapesTest.rec.pendingRawSamples[Math.floor(TapesTest.rec.pendingRawSamples.length * .75)] * 10)), 2);
+    await page.locator('#input-recording-name').fill('Combined.wav');
+    await page.locator('#btn-save-new').click();
+    await page.waitForFunction(() => TapesTest.state.view === 'view-project' && TapesTest.state.projects[0].recordings.length === 3);
+    const saved = await page.evaluate(async () => {
+      const dir = await fixtureFolder.getDirectoryHandle('Merge project');
+      const file = await (await dir.getFileHandle('Combined.wav')).getFile();
+      return {size: file.size, names: [...TapesTest.state.projects[0].recordings.map(r => r.fileName)]};
+    });
+    assert.ok(saved.size > 44);
+    assert.deepEqual(saved.names.sort(), ['Combined.wav', 'First.wav', 'Second.wav']);
+    console.log('PASS: Merge preserves selection order, saves a separate WAV, and keeps both originals');
+    const first = await page.evaluate(() => TapesTest.state.projects[0].recordings.find(r => r.fileName === 'First.wav').id);
+    await page.evaluate(id => TapesTest.startRecorder(null, id), first);
+    assert.equal(await page.locator('#recorder-title').textContent(), 'Summarise recording');
+    assert.equal(await page.locator('#summary-source').isVisible(), true);
+    assert.equal(await page.evaluate(() => TapesTest.summary.sourceId), first);
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({width, height: 900});
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    }
+    await page.locator('#btn-cancel-recorder').click();
+    await page.waitForFunction(() => TapesTest.state.view === 'view-project');
+    assert.equal(await page.evaluate(() => TapesTest.summary.sourceId), null);
+    const names = await page.evaluate(() => {
+      const T = TapesTest;
+      const invalid = ['', '.wav', 'bad/name', 'CON', 'x'.repeat(81)];
+      return {valid: T.validateRecordingName(' Example.wav '), rejected: invalid.map(name => {
+        try { T.validateRecordingName(name); return false; } catch { return true; }
+      })};
+    });
+    assert.equal(names.valid, 'Example'); assert.ok(names.rejected.every(Boolean));
+    await page.evaluate(async () => {
+      TapesTest.state.tapesDirHandle = null;
+      await (await navigator.storage.getDirectory()).removeEntry('merge-fixture', {recursive: true});
+    });
+    console.log('PASS: Summary setup/cancel, mobile layout, and WAV filename validation');
     assert.deepEqual(errors, [], 'Browser JavaScript errors');
   } finally {
     if (browser) await browser.close();
