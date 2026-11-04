@@ -535,7 +535,9 @@ async function scanFolder(){
         handle:fileHandle, stamp, createdAt:file.lastModified, updatedAt:file.lastModified,
         duration:unchanged ? prior.duration : null,
         peaks:unchanged ? prior.peaks : null,
-        audioError:unchanged ? prior.audioError : false
+        audioError:unchanged ? prior.audioError : false,
+        audioErrorLabel:unchanged ? prior.audioErrorLabel : '',
+        audioErrorMessage:unchanged ? prior.audioErrorMessage : ''
       });
     }
     projects.push(project);
@@ -595,20 +597,34 @@ async function folderOperation(action){
   }
 }
 
+async function getChildEntry(parent, handle, name=handle.name){
+  // Verify membership by handle identity, not resolve() path components, which
+  // can be opaque document identifiers on Android storage providers.
+  try{
+    const current = handle.kind === 'directory'
+      ? await parent.getDirectoryHandle(name)
+      : await parent.getFileHandle(name);
+    if (await sameEntry(current, handle)) return { name, handle:current };
+  } catch(err){
+    if (err.name === 'NotAllowedError' || err.name === 'SecurityError') throw err;
+  }
+  for await (const [entryName, current] of parent.entries()){
+    if (current.kind === handle.kind && await sameEntry(current, handle)){
+      return { name:entryName, handle:current };
+    }
+  }
+  throw new DOMException('The item moved outside this folder or was deleted. Refresh the folder and try again.', 'NotFoundError');
+}
+
 async function getProjectDir(project){
   if (!project) throw new Error('The project is no longer available.');
-  const path = await state.tapesDirHandle.resolve(project.handle);
-  if (!path || path.length !== 1) throw new Error('The project moved outside this folder or was deleted.');
-  const handle = await state.tapesDirHandle.getDirectoryHandle(path[0]);
-  if (!await sameEntry(handle, project.handle)) throw new Error('The project changed. Refresh and try again.');
-  return handle;
+  return (await getChildEntry(state.tapesDirHandle, project.handle, project.name)).handle;
 }
 
 async function getRecordingBlob(project, recording){
   const dir = await getProjectDir(project);
-  const path = await dir.resolve(recording.handle);
-  if (!path || path.length !== 1) throw new Error('The recording moved or was deleted.');
-  return recording.handle.getFile();
+  const entry = await getChildEntry(dir, recording.handle, recording.fileName);
+  return entry.handle.getFile();
 }
 
 async function writeBlob(fileHandle, blob){
@@ -658,9 +674,9 @@ async function copyDirectory(source, target){
 // Directory renames need copy-then-remove in browsers without native move support.
 // Validate both trees before removing the source; failures leave the originals intact.
 async function renameEntry(parent, handle, name){
-  const path = await parent.resolve(handle);
-  if (!path || path.length !== 1) throw new Error('This item moved or was deleted. Refresh and try again.');
-  const oldName = path[0];
+  const entry = await getChildEntry(parent, handle);
+  const oldName = entry.name;
+  handle = entry.handle;
   if (name === oldName) return handle;
   await assertNameAvailable(parent, name);
   try{
@@ -692,15 +708,14 @@ async function renameEntry(parent, handle, name){
 
 async function removeRecordingFile(project, recording){
   const dir = await getProjectDir(project);
-  await getRecordingBlob(project, recording);
-  const path = await dir.resolve(recording.handle);
-  await dir.removeEntry(path[0]);
+  const entry = await getChildEntry(dir, recording.handle, recording.fileName);
+  await dir.removeEntry(entry.name);
 }
 
 async function removeProjectFolder(project){
-  await getProjectDir(project);
-  const path = await state.tapesDirHandle.resolve(project.handle);
-  await state.tapesDirHandle.removeEntry(path[0], { recursive:true });
+  if (!project) throw new Error('The project is no longer available.');
+  const entry = await getChildEntry(state.tapesDirHandle, project.handle, project.name);
+  await state.tapesDirHandle.removeEntry(entry.name, { recursive:true });
 }
 
 async function useTapesFolder(dirHandle){
@@ -1317,12 +1332,13 @@ document.getElementById('btn-new-recording').addEventListener('click', () => {
 const metadataJobs = new Map();
 
 function recordingDuration(recording){
-  return recording.audioError ? 'Unreadable WAV' : recording.duration === null ? '...' : fmtTime(recording.duration);
+  return recording.audioError ? recording.audioErrorLabel || 'Audio unavailable' : recording.duration === null ? '...' : fmtTime(recording.duration);
 }
 
 function paintMetadata(recording){
   document.querySelectorAll(`[data-duration-for="${recording.id}"]`).forEach(el => {
     el.textContent = recordingDuration(recording);
+    el.title = recording.audioErrorMessage || '';
   });
   const wf = document.querySelector(`[data-waveform-for="${recording.id}"]`);
   if (wf && recording.peaks){
@@ -1335,17 +1351,26 @@ function paintMetadata(recording){
   }
 }
 
-async function loadRecordingMetadata(project, recording){
-  if (recording.duration !== null || recording.audioError) return;
+async function loadRecordingMetadata(project, recording, retry=false){
+  if (!retry && (recording.duration !== null || recording.audioError)) return;
   const key = recording.id + ':' + recording.stamp;
   if (metadataJobs.has(key)) return metadataJobs.get(key);
   const job = (async () => {
     let metadata;
+    let stage = 'access';
     try{
       const file = await getRecordingBlob(project, recording);
+      stage = 'decode';
       const { data, sampleRate } = await decodeBlobToFloat32(file);
-      metadata = { duration:data.length / sampleRate, peaks:computePeaks(data, NUM_PEAKS), audioError:false };
-    } catch(err){ metadata = { duration:null, peaks:null, audioError:true }; }
+      metadata = { duration:data.length / sampleRate, peaks:computePeaks(data, NUM_PEAKS), audioError:false, audioErrorLabel:'', audioErrorMessage:'' };
+    } catch(err){
+      console.warn(`Could not load audio metadata for ${recording.fileName}:`, err);
+      const accessError = stage === 'access' || ['NotAllowedError','NotFoundError','NotReadableError','SecurityError'].includes(err.name);
+      metadata = { duration:null, peaks:null, audioError:true,
+        audioErrorLabel:accessError ? 'File access failed' : 'Audio decode failed',
+        audioErrorMessage:audioErrorDetails(err)
+      };
+    }
     const current = state.projects?.flatMap(p => p.recordings).find(r => r.id === recording.id && r.stamp === recording.stamp);
     if (current){
       Object.assign(recording, metadata);
@@ -1359,6 +1384,26 @@ async function loadRecordingMetadata(project, recording){
 
 /* ===================== Playback ===================== */
 const playerEl = document.getElementById('player');
+
+function audioErrorDetails(err){
+  const detail = `${err.name || 'Error'}: ${err.message || String(err)}`;
+  if (err.name === 'NotAllowedError' || err.name === 'SecurityError'){
+    return `${detail} Reselect the Tapes folder and allow access, then tap Play again.`;
+  }
+  return detail;
+}
+
+async function resumePlayback(id){
+  try{
+    await playerEl.play();
+    if (state.player.currentRecordingId === id) setPlayIcon(id, true);
+  } catch(err){
+    if (state.player.currentRecordingId !== id) return;
+    setPlayIcon(id, false);
+    console.error('Audio playback failed:', err);
+    alert(`Could not play this recording. ${audioErrorDetails(err)}`);
+  }
+}
 
 function setPlaybackSpeed(speed){
   playerEl.defaultPlaybackRate = speed;
@@ -1390,7 +1435,7 @@ function resetPlayIcon(id){
 async function togglePlay(id){
   await refreshFolder();
   if (state.player.currentRecordingId === id){
-    if (playerEl.paused) { playerEl.play(); setPlayIcon(id, true); }
+    if (playerEl.paused) await resumePlayback(id);
     else { playerEl.pause(); setPlayIcon(id, false); }
     return;
   }
@@ -1408,14 +1453,13 @@ async function togglePlay(id){
     state.player.currentRecordingId = id;
     state.player.stamp = rec.stamp;
     setPlaybackSpeed(rec.playbackRate);
-    setPlayIcon(id, true);
-    try { await playerEl.play(); } catch(e) { /* needs user gesture; already have one */ }
-
     playerEl.ontimeupdate = () => updateWaveformProgress(id, playerEl.currentTime, playerEl.duration);
     playerEl.onended = () => { setPlayIcon(id, false); updateWaveformProgress(id, 0, playerEl.duration); };
+    await resumePlayback(id);
+    if (rec.audioError) loadRecordingMetadata(project, rec, true);
   } catch(err){
     console.error(err);
-    alert(`Could not play this recording. The WAV file may be missing from the Tapes folder.`);
+    alert(`Could not open "${rec.name}". ${audioErrorDetails(err)}`);
   }
 }
 
@@ -1450,7 +1494,7 @@ function onWaveformClick(e, rec){
     });
   } else {
     if (isFinite(playerEl.duration)) playerEl.currentTime = fraction * playerEl.duration;
-    if (playerEl.paused){ playerEl.play(); setPlayIcon(rec.id, true); }
+    if (playerEl.paused) resumePlayback(rec.id);
   }
 }
 
